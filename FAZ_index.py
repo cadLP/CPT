@@ -19,5 +19,8 @@ class FAZIndexSpider(CrawlSpider):
         item['author'] = response.xpath('//div[contains(@class, "atc-Meta")]//span[@class="atc-MetaAuthor"]/text()').getall()
         item['text'] = response.xpath('//div[contains(@class, "Text")]//p[contains(@class, "TextParagraph")]/text()').getall()
         return item
+
+
+
 #link_selector = '//div[contains(@class, "Articles")]//a[contains(@class, "lbl-Base") and not(contains(@class, "lbl-Base-has-icon"))]/@href'
 #scrapy runspider quotes_spider.py -o quotes.json
