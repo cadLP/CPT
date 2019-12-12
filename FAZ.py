@@ -1,6 +1,7 @@
 import scrapy
 
-class QuotesSpider(scrapy.Spider):
+
+class FAZSpider(scrapy.Spider):
     name = 'faz_article'
     start_urls = [
         'https://www.faz.net/aktuell/politik/ausland/',
