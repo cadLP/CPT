@@ -1,39 +1,40 @@
+# -*- coding: utf-8 -*-
 import scrapy
-import logging
 
 
-Politik = "https://www.faz.net/aktuell/politik"
-Wirtschaft = "https://www.faz.net/aktuell/wirtschaft/"
-Finanzen = "https://www.faz.net/aktuell/finanzen/"
-Sport = "https://www.faz.net/aktuell/sport/"
+Politik = ["https://www.faz.net/aktuell/politik"]
+Wirtschaft = ["https://www.faz.net/aktuell/wirtschaft/"]
+Finanzen = ["https://www.faz.net/aktuell/finanzen/"]
+Sport = ["https://www.faz.net/aktuell/sport/"]
 Kultur = ["https://www.faz.net/aktuell/feuilleton/", "https://www.faz.net/aktuell/stil/"]
-Gesellschaft = "https://www.faz.net/aktuell/gesellschaft/"
-Reisen = "https://www.faz.net/aktuell/reise/"
-Technik = "https://www.faz.net/aktuell/technik-motor/"
-#Meinung
-#IT/Digital
-Wissen = "https://www.faz.net/aktuell/wissen/"
-Regional = "https://www.faz.net/aktuell/rhein-main/"
-Karriere = "https://www.faz.net/aktuell/karriere-hochschule/"
+Gesellschaft = ["https://www.faz.net/aktuell/gesellschaft/"]
+Reisen = ["https://www.faz.net/aktuell/reise/"]
+Technik = ["https://www.faz.net/aktuell/technik-motor/"]
+Meinung = ["https://www.faz.net/aktuell/feuilleton/brief-aus-istanbul/",
+           "https://www.faz.net/aktuell/rhein-main/buergergespraech/",
+           "https://www.faz.net/aktuell/wirtschaft/hanks-welt/"]
+Digital = ["https://www.faz.net/aktuell/technik-motor/digital/", "https://www.faz.net/aktuell/wirtschaft/digitec/",
+           "https://www.faz.net/aktuell/finanzen/digital-bezahlen/"]
+Wissen = ["https://www.faz.net/aktuell/wissen/", "https://www.faz.net/aktuell/wirtschaft/schneller-schlau/"]
+Regional = ["https://www.faz.net/aktuell/rhein-main/"]
+Karriere = ["https://www.faz.net/aktuell/karriere-hochschule/"]
+
+categories = Politik + Wirtschaft + Finanzen + Sport + Kultur + Gesellschaft + Reisen + Technik + Meinung + Digital + Wissen + Regional + Karriere
 
 
-class FAZSpider(scrapy.Spider):
-    name = 'faz_index'
-    start_urls = [
-        Technik
-        #, Wirtschaft, Finanzen, Sport, Kultur, Kultur2, Gesellschaft, Reisen, Technik, Wissen, Regional, Karriere
-    ]
+class FazSpider(scrapy.Spider):
+    name = 'FAZSpider'
+    start_urls = categories
 
     def parse(self, response):
         selector_subcategories = "//div[contains(@class, 'Articles')]//a[contains(@class, 'is-link') and starts-with(@href, '/aktuell')]/@href"
 
         for faz_index in response.xpath(selector_subcategories).getall():
-            yield response.follow(faz_index, self.parse_index)
+            if any(faz_index in s for s in categories):
+                yield {"url": faz_index}
 
     def parse_index(self, response):
-
         selector_articles = '//div[contains(@class, "ctn-List")]//a[contains(@class, "ContentLink")]/@href'
-        #Fplus = "//span[contains(@class, 'Headline') and not(contains(@class, 'has-icon') or contains(@class, 'Text'))]"
         next_page_selector = '//li[contains(@class, "next-page")]/a/@href'
 
         for faz_article in response.xpath(selector_articles).getall():
@@ -48,11 +49,9 @@ class FAZSpider(scrapy.Spider):
     def parse_article(self, response):
         article = response.url.split("/")[-1]
         filename = 'article-%s' % article
-        with open (filename, 'wb') as f:
+        with open(filename, 'wb') as f:
             f.write(response.body)
         self.log('Saved file %s' % filename)
-
-
 
 #//div[contains(@class, 'Lead')]//a[contains(@class, 'is-link')]/@href
 #//li[contains(@class, 'TopicsListItem')]/a[contains(@href, 'aktuell')]/@href
