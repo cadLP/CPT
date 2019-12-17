@@ -19,8 +19,7 @@ Wissen = ["https://www.faz.net/aktuell/wissen/", "https://www.faz.net/aktuell/wi
 Regional = ["https://www.faz.net/aktuell/rhein-main/"]
 Karriere = ["https://www.faz.net/aktuell/karriere-hochschule/"]
 
-categories = Politik + Wirtschaft + Finanzen + Sport + Kultur + Gesellschaft + Reisen + Technik + Meinung + Digital \
-             + Wissen + Regional + Karriere
+categories = Politik + Wirtschaft + Finanzen
 
 
 class FazSpider(scrapy.Spider):
@@ -31,8 +30,7 @@ class FazSpider(scrapy.Spider):
         selector_subcategories = "//div[contains(@class, 'Articles')]//a[contains(@class, 'is-link') and starts-with(@href, '/aktuell')]/@href"
 
         for faz_index in response.xpath(selector_subcategories).getall():
-            if any(faz_index in s for s in categories):
-                yield {"url": faz_index}
+            yield response.follow(faz_index, self.parse_index)
 
     def parse_index(self, response):
         selector_articles = '//div[contains(@class, "ctn-List")]//a[contains(@class, "ContentLink")]/@href'
@@ -53,8 +51,3 @@ class FazSpider(scrapy.Spider):
         with open(filename, 'wb') as f:
             f.write(response.body)
         self.log('Saved file %s' % filename)
-
-#//div[contains(@class, 'Lead')]//a[contains(@class, 'is-link')]/@href
-#//li[contains(@class, 'TopicsListItem')]/a[contains(@href, 'aktuell')]/@href
-#link_selector = '//div[contains(@class, "Articles")]//a[contains(@class, "lbl-Base") and not(contains(@class, "lbl-Base-has-icon"))]/@href'
-#scrapy runspider quotes_spider.py -o quotes.json
