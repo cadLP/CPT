@@ -19,20 +19,30 @@ Wissen = ["https://www.faz.net/aktuell/wissen/", "https://www.faz.net/aktuell/wi
 Regional = ["https://www.faz.net/aktuell/rhein-main/"]
 Karriere = ["https://www.faz.net/aktuell/karriere-hochschule/"]
 
-categories = Politik + Wirtschaft + Finanzen + Sport + Kultur + Gesellschaft + Reisen + Technik + Meinung + Digital \
-             + Wissen + Regional + Karriere
-
+categories = Politik + Wirtschaft + Finanzen + Sport + Kultur + Gesellschaft + Reisen + Technik + Wissen + Regional + Karriere
+subcategories = Digital + Wissen
+cat = categories + subcategories
 
 class FazSpider(scrapy.Spider):
     name = 'FAZSpider'
-    start_urls = categories
+    start_urls = cat
+
+    # if categories = Meinung und Digital -> direkt zu parse index
 
     def parse(self, response):
         selector_subcategories = "//div[contains(@class, 'Articles')]//a[contains(@class, 'is-link') and starts-with(@href, '/aktuell')]/@href"
 
-        for faz_index in response.xpath(selector_subcategories).getall():
-            if any(faz_index in s for s in categories):
-                yield {"url": faz_index}
+        if response.xpath(selector_subcategories).get():
+            for faz_index in response.xpath(selector_subcategories).getall():
+                if not any(faz_index in s for s in subcategories):
+                    self.logger.info('Parse function calles on %s', response.url)
+                    self.logger.info('Parse %s', faz_index)
+                    #yield response.follow(faz_index, self.parse_index)
+        else:
+            self.logger.info("Else function on %s", response.url)
+
+
+
 
     def parse_index(self, response):
         selector_articles = '//div[contains(@class, "ctn-List")]//a[contains(@class, "ContentLink")]/@href'
@@ -40,12 +50,13 @@ class FazSpider(scrapy.Spider):
 
         for faz_article in response.xpath(selector_articles).getall():
             self.logger.info('Parse function called on %s', response.url)
-            yield response.follow(faz_article, self.parse_article)
+            yield {"url": faz_article}
+            #yield response.follow(faz_article, self.parse_article)
 
-        next_page = response.xpath(next_page_selector).get()
+        """next_page = response.xpath(next_page_selector).get()
         self.logger.info('next_page %s', next_page)
         if next_page is not None:
-            yield response.follow(next_page, self.parse_index)
+            yield response.follow(next_page, self.parse_index)"""
 
     def parse_article(self, response):
         article = response.url.split("/")[-1]
