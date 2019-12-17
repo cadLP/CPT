@@ -20,7 +20,7 @@ categories = {
     "Karriere": {"https://www.faz.net/aktuell/karriere-hochschule/"}
 }
 
-to_selected_cat = ["Wirtschaft", "Digital", "Reisen"]
+to_selected_cat = ["Reisen"]
 
 selected_categories = []
 
@@ -45,7 +45,8 @@ class FazSpider(scrapy.Spider):
                     yield response.follow(faz_index, self.parse_index)
         else:
             self.logger.info("Else: %s", response.url)
-            return scrapy.Request(response.url, callback=self.parse_index)
+            request = scrapy.Request(response.url, callback=self.parse_index)
+            yield request
 
     def parse_index(self, response):
         selector_articles = '//div[contains(@class, "ctn-List")]//a[contains(@class, "ContentLink")]/@href'
@@ -55,13 +56,13 @@ class FazSpider(scrapy.Spider):
         if "reise" in response.url:
             for faz_article_r in response.xpath(selector_articles_r).getall():
                 self.logger.info('Result Reise: %s', faz_article_r)
-                #yield response.follow(faz_article_r, self.parse_article)
+                yield response.follow(faz_article_r, self.parse_article)
         else:
             for faz_article in response.xpath(selector_articles).getall():
                 if "blogs." not in faz_article:
                     self.logger.info('Result: %s', faz_article)
                     # yield {"url": faz_article}
-                    #yield response.follow(faz_article, self.parse_article)
+                    yield response.follow(faz_article, self.parse_article)
 
             """next_page = response.xpath(next_page_selector).get()
             self.logger.info('next_page %s', next_page)
