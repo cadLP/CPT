@@ -13,7 +13,7 @@ class FAZSpider(scrapy.Spider):
         #next_page_selector = '//li[contains(@class, "next-page")]/a/@href'
 
         for faz_article in response.xpath(link_selector).get():
-            self.logger.info('Parse function called on %s', response.url)
+            #self.logger.info('Parse function called on %s', response.url)
             yield response.follow(faz_article, self.parse_article)
 
     def parse_article(self, response):
@@ -21,13 +21,14 @@ class FAZSpider(scrapy.Spider):
         subtitle = response.xpath('//span[@class="atc-HeadlineText"]/text()').get()
         author = response.xpath('//a[@class="atc-MetaAuthorLink"]/text()').get()
         article_source = response.xpath('//span[@class="atc-Footer_Quelle"]/text()').get()
-
-        JSON = response.xpath('//script[contains(@type, "json")]').get()
+        metadata = response.xpath('//div[contains(@class, "digital-data")]/text()')
+        JSON = response.xpath('//script[contains(@type, "json")]/text()').get()
 
         yield {
             #'title': title + ": " + subtitle,
             #'author': str(author) + "(" + str(article_source) + ")",
-            'json': JSON
+            #'json': JSON,
+            'metadata': metadata
         }
 
 
