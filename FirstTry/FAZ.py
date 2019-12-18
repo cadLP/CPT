@@ -1,5 +1,6 @@
 import scrapy
 import json
+import ast
 
 
 class FAZSpider(scrapy.Spider):
@@ -12,24 +13,46 @@ class FAZSpider(scrapy.Spider):
         link_selector = '//div[contains(@class, "ctn-List")]//a[contains(@class, "ContentLink")]/@href'
         #next_page_selector = '//li[contains(@class, "next-page")]/a/@href'
 
-        for faz_article in response.xpath(link_selector).get():
+        for faz_article in response.xpath(link_selector).getall():
             #self.logger.info('Parse function called on %s', response.url)
             yield response.follow(faz_article, self.parse_article)
 
     def parse_article(self, response):
-        title = response.xpath('//span[@class="atc-HeadlineEmphasisText"]/text()').get()
-        subtitle = response.xpath('//span[@class="atc-HeadlineText"]/text()').get()
-        author = response.xpath('//a[@class="atc-MetaAuthorLink"]/text()').get()
-        article_source = response.xpath('//span[@class="atc-Footer_Quelle"]/text()').get()
-        metadata = response.xpath('//div[contains(@class, "digital-data")]/text()')
-        JSON = response.xpath('//script[contains(@type, "json")]/text()').get()
+        metadata = response.xpath('//div/@data-digital-data').get()
+        metadata_2 = response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get()
 
-        yield {
-            #'title': title + ": " + subtitle,
-            #'author': str(author) + "(" + str(article_source) + ")",
-            #'json': JSON,
-            'metadata': metadata
-        }
+        metadata_json = json.loads(metadata)
+
+        metadata_2_json = json.loads(metadata_2)
+
+
+        title = metadata_json["page"]["title"]
+        author = metadata_json["article"]["author"]
+        payed_content = metadata_json["article"]["type"]
+
+        description = metadata_2_json["description"]
+        article_body = metadata_2_json["articleBody"]
+        published = metadata_2_json["datePublished"]
+        modified = metadata_2_json["dateModified"]
+        author = metadata_2_json["author"]["name"]
+
+        images = []
+        for img in metadata_2_json["image"]:
+            images.append(img["url"])
+
+        if 'Bezahlartikel' not in payed_content:
+            yield {
+                'title': title,
+                'author': author,
+                'payed_content': payed_content,
+                'description': description,
+                'article_body': article_body,
+                'published': published,
+                'modified': modified,
+                'images': images,
+            }
+
+
 
 
         #article = response.url.split("/")[-1]
