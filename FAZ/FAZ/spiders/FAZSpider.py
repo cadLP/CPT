@@ -50,18 +50,18 @@ class FazSpider(scrapy.Spider):
 
     def parse_index(self, response):
         selector_articles = '//div[contains(@class, "ctn-List")]//a[contains(@class, "ContentLink")]/@href'
-        selector_articles_r = "//a[contains(@class, 'ContentLink')]/@href"
+        selector_articles_reise = "//a[contains(@class, 'ContentLink')]/@href"
         next_page_selector = '//li[contains(@class, "next-page")]/a/@href'
 
         if "reise" in response.url:
-            for faz_article_r in response.xpath(selector_articles_r).getall():
+            for faz_article_r in response.xpath(selector_articles_reise).getall():
                 #self.logger.info('Result Reise: %s', faz_article_r)
                 yield response.follow(faz_article_r, self.parse_article)
         else:
             for faz_article in response.xpath(selector_articles).getall():
                 if "blogs." not in faz_article:
                     #self.logger.info('Result: %s', faz_article)
-                    # yield {"url": faz_article}
+                    #yield {"url": faz_article}
                     yield response.follow(faz_article, self.parse_article)
 
             """next_page = response.xpath(next_page_selector).get()
