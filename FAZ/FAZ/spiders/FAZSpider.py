@@ -20,15 +20,23 @@ categories = {
     "Karriere": {"https://www.faz.net/aktuell/karriere-hochschule/"}
 }
 
-to_selected_cat = ["Reisen", "Digital"]
+
+to_selected_cat = ["Technik"]
+cat = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik", "Meinung", "Wissen","Regional", "Karriere"]
 
 selected_categories = []
+all_categories = []
 
 for x,y in categories.items():
     for i in to_selected_cat:
         if i == x:
             for a in y:
                 selected_categories.append(a)
+    for i in cat:
+        if i == x:
+            for a in y:
+                all_categories.append(a)
+
 
 class FazSpider(scrapy.Spider):
     name = 'FAZSpider'
@@ -39,7 +47,7 @@ class FazSpider(scrapy.Spider):
 
         if response.xpath(selector_subcategories).get():
             for faz_index in response.xpath(selector_subcategories).getall():
-                if not any(faz_index in s for s in categories):
+                if not any(faz_index in s for s in all_categories):
                     #self.logger.info('Parse function calles on %s', response.url)
                     #self.logger.info('Parse %s', faz_index)
                     yield response.follow(faz_index, self.parse_index)
@@ -77,7 +85,7 @@ class FazSpider(scrapy.Spider):
         self.log('Saved file %s' % filename)"""
         self.logger.info("URL: %s", response.url)
 
-# //div[contains(@class, 'Lead')]//a[contains(@class, 'is-link')]/@href
-# //li[contains(@class, 'TopicsListItem')]/a[contains(@href, 'aktuell')]/@href
-# link_selector = '//div[contains(@class, "Articles")]//a[contains(@class, "lbl-Base") and not(contains(@class, "lbl-Base-has-icon"))]/@href'
-# scrapy runspider quotes_spider.py -o quotes.json
+#//div[contains(@class, 'Lead')]//a[contains(@class, 'is-link')]/@href
+#//li[contains(@class, 'TopicsListItem')]/a[contains(@href, 'aktuell')]/@href
+#link_selector = '//div[contains(@class, "Articles")]//a[contains(@class, "lbl-Base") and not(contains(@class, "lbl-Base-has-icon"))]/@href'
+#scrapy runspider quotes_spider.py -o quotes.json
