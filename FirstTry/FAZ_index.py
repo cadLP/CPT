@@ -34,8 +34,6 @@ class FazSpider(scrapy.Spider):
     name = 'FAZSpider'
     start_urls = selected_categories
 
-    # if categories = Meinung und Digital -> direkt zu parse index
-
     def parse(self, response):
         selector_subcategories = "//div[contains(@class, 'Articles')]//a[contains(@class, 'is-link') and starts-with(@href, '/aktuell')]/@href"
 

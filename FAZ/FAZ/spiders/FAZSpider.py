@@ -16,7 +16,7 @@ categories = {
                 "https://www.faz.net/aktuell/wirtschaft/hanks-welt/"},
     "Digital": {"https://www.faz.net/aktuell/technik-motor/digital/", "https://www.faz.net/aktuell/wirtschaft/digitec/",
                 "https://www.faz.net/aktuell/finanzen/digital-bezahlen/"},
-    "Wissen": {"https://www.faz.net/aktuell/wissen/", "https://www.faz.net/aktuell/wirtschaft/schneller-schlau/"},
+    "Wissen": {"https://www.faz.net/aktuell/wissen/"},
     "Regional": {"https://www.faz.net/aktuell/rhein-main/"},
     "Karriere": {"https://www.faz.net/aktuell/karriere-hochschule/"}
 }
@@ -73,64 +73,107 @@ class FazSpider(scrapy.Spider):
                     # yield {"url": faz_article}
                     yield response.follow(faz_article, self.parse_article)
 
-            """next_page = response.xpath(next_page_selector).get()
+            next_page = response.xpath(next_page_selector).get()
             self.logger.info('next_page %s', next_page)
             if next_page is not None:
-                yield response.follow(next_page, self.parse_index)"""
+                yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
-        """article = response.url.split("/")[-1]
-        filename = 'article-%s' % article
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-        self.log('Saved file %s' % filename)"""
-        self.logger.info("URL: %s", response.url)
+        metadata = json.loads(response.xpath('//div/@data-digital-data').get())
+        metadata_ld = json.loads(response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
 
-        metadata = response.xpath('//div/@data-digital-data').get()
-        metadata_ld = response.xpath(
-            '//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get()
-
-        metadata_json = json.loads(metadata)
-        metadata_ld_json = json.loads(metadata_ld)
-
-        title = metadata_json["page"]["title"]
-        payed_content = metadata_json["article"]["type"]
-
-        try:
-            description = metadata_ld_json["description"]
-        except KeyError:
-            description = "no description"
-
-        try:
-            article_body = metadata_ld_json["articleBody"]
-        except KeyError:
-            article_body = "no article body"
-
-        try:
-            metadata_ld_json["image"]
-        except:
-            images = "no images"
-        else:
-            images = []
-            for img in metadata_ld_json["image"]:
-                images.append(img["url"])
-
-        published = metadata_ld_json["datePublished"]
-        modified = metadata_ld_json["dateModified"]
-        author = metadata_ld_json["author"]["name"]
+        next_page = response.xpath("//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
+        payed_content = metadata["article"]["type"]
 
 
         if 'Bezahlartikel' not in payed_content:
-            yield {
+            title = metadata["page"]["title"]
+
+            try:
+                description = metadata_ld["description"]
+            except:
+                description = "no description"
+
+            try:
+                images = metadata_ld["image"]
+            except:
+                image_str = "no images"
+            else:
+                image_str = ""
+                if type(images) is list:
+                    for img in images:
+                        if not image_str:
+                            image_str += img["url"]
+                        else:
+                            image_str = image_str + ", " + img["url"]
+                else:
+                    image_str += images["url"]
+
+            try:
+                pagination = metadata["article"]["pagination"]["maxPage"]
+            except:
+                pagination = "1"
+
+            try:
+                published = metadata_ld["datePublished"]
+            except:
+                published = "no date"
+
+            try:
+                modified = metadata_ld["dateModified"]
+            except:
+                modified = "no date"
+
+            try:
+                authors = metadata_ld["author"]
+            except:
+                author_str = "no author"
+            else:
+                author_str = ""
+                if type(authors) is list:
+                    for author in authors:
+                        if not author_str:
+                            author_str +=  author["name"]
+                        else:
+                            author_str = author_str + ", " + author["name"]
+                else:
+                    author_str += authors["name"]
+
+            try:
+                article_body = metadata_ld["articleBody"]
+            except:
+                article_body = "no article body"
+                # response.xpath(//p[contains(@class, "copy") and not(contains(@class, "intro"))]/text()).getall()
+
+            article = {
                 'title': title,
-                'author': author,
+                '#author': author_str,
                 'payed_content': payed_content,
                 'description': description,
                 'article_body': article_body,
                 'published': published,
                 'modified': modified,
-                'images': images,
+                'images': image_str,
+                'url': response.url,
+                'page_count': pagination
             }
+
+            if next_page:
+                yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": article})
+            else:
+                yield article
+
+    def parse_multiple_page_article(self, response):
+        item = response.meta['item']
+        metadata_ld = json.loads(response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
+        next_page = response.xpath("//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
+
+        item["article_body"] = item["article_body"] + metadata_ld["articleBody"]
+
+        if next_page:
+            yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": response.meta['item']})
+        else:
+            yield item
 
 # //div[contains(@class, 'Lead')]//a[contains(@class, 'is-link')]/@href
 # //li[contains(@class, 'TopicsListItem')]/a[contains(@href, 'aktuell')]/@href
