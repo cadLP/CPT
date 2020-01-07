@@ -33,7 +33,10 @@ class FAZSpider(scrapy.Spider):
         next_page = response.xpath(
             "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
         payed_content = metadata["article"]["type"]
-        paragraph_1 = response.xpath("//[contains(@class , 'copy') and not (contains(@class , 'intro'))]/text()").getall()
+        paragraph_version_1_text = response.xpath("//p[contains(@class , 'copy') and not (contains(@class , "
+                                                  "'intro'))]/text()").getall()
+        paragraph_version_2_text = response.xpath("//section[contains(@class, 'text') and not(contains(@class, "
+                                                  "'opener'))]/p/text()").getall()
 
         if 'Bezahlartikel' not in payed_content:
             title = metadata["page"]["title"]
@@ -89,37 +92,47 @@ class FAZSpider(scrapy.Spider):
                     author_str += authors["name"]
 
             try:
-                article_body = metadata_ld["articleBody"]
+                article_bodies = metadata_ld["articleBody"]
             except:
-                #article_body = "no article body"
                 article_body = ""
-                if paragraph_1:
-                    for i in paragraph_1:
+                if paragraph_version_1_text is not None:
+                    self.logger.info("paragraph 1 works")
+                    for i in paragraph_version_1_text:
+                        article_body = i
+                        #if not article_body:
+                        #    article_body += i
+                        #else:
+                        #    article_body = article_body + " " + i
+                elif paragraph_version_2_text is not None:
+                    self.logger.info("paragraph 2 works")
+                    for i in paragraph_version_2_text:
                         if not article_body:
                             article_body += i
                         else:
                             article_body = article_body + " " + i
                 else:
+                    self.logger.info("paragraph did not work")
                     article_body = "no article body"
-
-
-
+            else:
+                self.logger.info("article_body worked")
+                article_body = "article_bodies"
 
             article = {
-                'title': title,
-                '#author': author_str,
-                'payed_content': payed_content,
-                'description': description,
+                #'title': title,
+                #'#author': author_str,
+                #'payed_content': payed_content,
+                #'description': description,
                 'article_body': article_body,
-                'published': published,
-                'modified': modified,
-                'images': image_str,
+                #'published': published,
+                #'modified': modified,
+                #'images': image_str,
                 'url': response.url,
-                'page_count': pagination
+                #'page_count': pagination
             }
 
             if next_page:
-                yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": article})
+                self.logger.info("next page available")
+                #yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": article})
             else:
                 yield article
 

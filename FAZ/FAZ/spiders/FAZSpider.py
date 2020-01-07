@@ -21,7 +21,8 @@ categories = {
     "Karriere": {"https://www.faz.net/aktuell/karriere-hochschule/"}
 }
 
-to_selected_cat = ["Wissen"]
+to_selected_cat = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik",
+       "Meinung", "Wissen", "Regional", "Karriere"]
 cat = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik",
        "Meinung", "Wissen", "Regional", "Karriere"]
 
@@ -143,7 +144,6 @@ class FazSpider(scrapy.Spider):
                 article_body = metadata_ld["articleBody"]
             except:
                 article_body = "no article body"
-                # response.xpath(//p[contains(@class, "copy") and not(contains(@class, "intro"))]/text()).getall()
 
             article = {
                 'title': title,
