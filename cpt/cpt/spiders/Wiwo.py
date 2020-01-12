@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
+from ..items import CptItem
 
 categories = {
     "Politik": {"https://www.wiwo.de/politik/"},
@@ -41,6 +42,7 @@ class WiwoSpider(scrapy.Spider):
         #    self.logger.info("parse: %s",response.url)
         #    yield response.follow(category, self.parsecontent)
 
+
         if response.xpath(link_selector).get():
             for wiwo_index in response.xpath(link_selector).getall():
                 if not any(wiwo_index in s for s in cat):
@@ -55,13 +57,15 @@ class WiwoSpider(scrapy.Spider):
     def parsecontent(self, response):
         link_selector = response.xpath('//a[contains(@class, "teaser__image-wrapper")]/@href').getall()
         next_page = response.xpath('//a[contains(@rel,"next")]/@href').get()
-        if next_page:
-            yield response.follow(next_page, self.parsecontent)
+        #if next_page:
+        #   yield response.follow(next_page, self.parsecontent)
         for article in link_selector:
             yield response.follow(article, self.parsearticle)
 
     def parsearticle(self, response):
         self.logger.info("url: %s", response.url)
+
+        items = CptItem()
 
         metadata_selektor = response.xpath('//script[contains(@type, "ld+json")]/text()').get()
         premium = response.xpath('//div[contains(@class, "c-metadata--premium")]').get()
@@ -150,7 +154,22 @@ class WiwoSpider(scrapy.Spider):
                         else:
                             body_str = body_str + " " + p
 
-                    article = {
+                    language = "german"
+
+
+                    items['title'] = title
+                    items['author'] = author_str
+                    items['date_published'] = date_published
+                    items['date_edited'] = date_modified
+                    items['keywords'] = keywords
+                    items['media'] = image_str
+                    items['language'] = language
+                    items['url'] = response.url
+                    items['article_text'] = body_str
+
+                    yield items
+
+                    """article = {
                         'title': title,
                         'author': author_str,
                         'publisher': publisher_str,
@@ -162,6 +181,7 @@ class WiwoSpider(scrapy.Spider):
                         'image': image_str,
                         'url': response.url,
                         'premium': premium
+                        'language': language
                     }
 
-                    yield article
+                    yield article"""
