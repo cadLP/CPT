@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
+from ..items import CptItem
 
 categories = {
-    "Politik": {"https://www.faz.net/aktuell/politik"},
+    "Politik": {"https://www.faz.net/aktuell/politik", "https://www.faz.net/aktuell/brexit/"},
     "Wirtschaft": {"https://www.faz.net/aktuell/wirtschaft/"},
     "Finanzen": {"https://www.faz.net/aktuell/finanzen/"},
     "Sport": {"https://www.faz.net/aktuell/sport/"},
@@ -14,15 +15,16 @@ categories = {
     "Meinung": {"https://www.faz.net/aktuell/feuilleton/brief-aus-istanbul/",
                 "https://www.faz.net/aktuell/rhein-main/buergergespraech/",
                 "https://www.faz.net/aktuell/wirtschaft/hanks-welt/"},
-    "Digital": {"https://www.faz.net/aktuell/technik-motor/digital/", "https://www.faz.net/aktuell/wirtschaft/digitec/",
+    "Digital": {"https://www.faz.net/aktuell/technik-motor/digital/",
+                "https://www.faz.net/aktuell/wirtschaft/digitec/",
                 "https://www.faz.net/aktuell/finanzen/digital-bezahlen/"},
     "Wissen": {"https://www.faz.net/aktuell/wissen/"},
     "Regional": {"https://www.faz.net/aktuell/rhein-main/"},
     "Karriere": {"https://www.faz.net/aktuell/karriere-hochschule/"}
 }
 
-to_selected_cat = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik",
-       "Meinung", "Wissen", "Regional", "Karriere"]
+to_selected_cat = ["Wirtschaft"]
+# "Digital", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik", "Meinung", "Wissen", "Regional", "Karriere"
 cat = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik",
        "Meinung", "Wissen", "Regional", "Karriere"]
 
@@ -38,7 +40,6 @@ for x, y in categories.items():
         if i == x:
             for a in y:
                 all_categories.append(a)
-
 
 class FazSpider(scrapy.Spider):
     name = 'FAZSpider'
@@ -76,106 +77,127 @@ class FazSpider(scrapy.Spider):
 
             next_page = response.xpath(next_page_selector).get()
             self.logger.info('next_page %s', next_page)
-            if next_page is not None:
-                yield response.follow(next_page, self.parse_index)
+            # if next_page is not None:
+            #    yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
         metadata = json.loads(response.xpath('//div/@data-digital-data').get())
-        metadata_ld = json.loads(response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
+        metadata_ld = json.loads(
+            response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
 
-        next_page = response.xpath("//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
+        next_page = response.xpath(
+            "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
         payed_content = metadata["article"]["type"]
 
+        items = CptItem()
 
         if 'Bezahlartikel' not in payed_content:
-            title = metadata["page"]["title"]
-
-            try:
-                description = metadata_ld["description"]
-            except:
-                description = "no description"
-
-            try:
-                images = metadata_ld["image"]
-            except:
-                image_str = "no images"
-            else:
-                image_str = ""
-                if type(images) is list:
-                    for img in images:
-                        if not image_str:
-                            image_str += img["url"]
-                        else:
-                            image_str = image_str + ", " + img["url"]
-                else:
-                    image_str += images["url"]
-
-            try:
-                pagination = metadata["article"]["pagination"]["maxPage"]
-            except:
-                pagination = "1"
-
-            try:
-                published = metadata_ld["datePublished"]
-            except:
-                published = "no date"
-
-            try:
-                modified = metadata_ld["dateModified"]
-            except:
-                modified = "no date"
-
-            try:
-                authors = metadata_ld["author"]
-            except:
-                author_str = "no author"
-            else:
-                author_str = ""
-                if type(authors) is list:
-                    for author in authors:
-                        if not author_str:
-                            author_str +=  author["name"]
-                        else:
-                            author_str = author_str + ", " + author["name"]
-                else:
-                    author_str += authors["name"]
-
             try:
                 article_body = metadata_ld["articleBody"]
             except:
-                article_body = "no article body"
-
-            article = {
-                'title': title,
-                '#author': author_str,
-                'payed_content': payed_content,
-                'description': description,
-                'article_body': article_body,
-                'published': published,
-                'modified': modified,
-                'images': image_str,
-                'url': response.url,
-                'page_count': pagination
-            }
-
-            if next_page:
-                yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": article})
+                pass
             else:
-                yield article
+                title = metadata["page"]["title"]
+
+                try:
+                    description = metadata_ld["description"]
+                except:
+                    description = "no description"
+
+                try:
+                    images = metadata_ld["image"]
+                except:
+                    image_str = "no images"
+                else:
+                    image_str = ""
+                    if type(images) is list:
+                        for img in images:
+                            if not image_str:
+                                image_str += img["url"]
+                            else:
+                                image_str = image_str + ", " + img["url"]
+                    else:
+                        image_str += images["url"]
+
+                try:
+                    pagination = metadata["article"]["pagination"]["maxPage"]
+                except:
+                    pagination = "1"
+
+                try:
+                    published = metadata_ld["datePublished"]
+                except:
+                    published = "no date"
+
+                try:
+                    modified = metadata_ld["dateModified"]
+                except:
+                    modified = "no date"
+
+                try:
+                    authors = metadata_ld["author"]
+                except:
+                    author_str = "no author"
+                else:
+                    author_str = ""
+                    if type(authors) is list:
+                        for author in authors:
+                            if not author_str:
+                                author_str += author["name"]
+                            else:
+                                author_str = author_str + ", " + author["name"]
+                    else:
+                        author_str += authors["name"]
+
+                for key, values in categories.items():
+                    for value in values:
+                        #self.logger.info("Value: %s", values)
+                        #self.logger.info("Value: %s", value)
+                        #self.logger.info("URL: %s", response.url)
+                        if value in response.url:
+                            category = key
+
+
+                """article = {
+                    'title': title,
+                    'author': author_str,
+                    'payed_content': payed_content,
+                    'description': description,
+                    'article_body': article_body,
+                    'published': published,
+                    'modified': modified,
+                    'images': image_str,
+                    'url': response.url,
+                    'page_count': pagination
+                }"""
+
+                items["title"] = title
+                items["author"] = author_str
+                items["date_retrieved"] = "no date yet"
+                items["date_published"] = published
+                items["date_edited"] = modified
+                items["url"] = response.url
+                items["language"] = "German"
+                items["keywords"] = "No Keywords"
+                items["media"] = image_str
+                items["article_text"] = article_body
+                items["category"] = category
+
+                if next_page:
+                    yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": items})
+                else:
+                    yield items
 
     def parse_multiple_page_article(self, response):
         item = response.meta['item']
-        metadata_ld = json.loads(response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
-        next_page = response.xpath("//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
+        metadata_ld = json.loads(
+            response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
+        next_page = response.xpath(
+            "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
 
-        item["article_body"] = item["article_body"] + metadata_ld["articleBody"]
+        item["article_text"] = item["article_text"] + metadata_ld["articleBody"]
 
         if next_page:
             yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": response.meta['item']})
         else:
             yield item
-
-# //div[contains(@class, 'Lead')]//a[contains(@class, 'is-link')]/@href
-# //li[contains(@class, 'TopicsListItem')]/a[contains(@href, 'aktuell')]/@href
-# link_selector = '//div[contains(@class, "Articles")]//a[contains(@class, "lbl-Base") and not(contains(@class, "lbl-Base-has-icon"))]/@href'
-# scrapy runspider quotes_spider.py -o quotes.json
