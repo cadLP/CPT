@@ -3,6 +3,8 @@ import json
 import re
 import scrapy
 
+from ..items import CptItem
+
 
 class HeiseSpider(scrapy.Spider):
     name = 'heise'
@@ -33,13 +35,15 @@ class HeiseSpider(scrapy.Spider):
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_article(self, response):
+        items = CptItem()
+
         id = 0
         title = response.xpath('//meta[@name="title"]/@content').get()
         date_retrieved = ""
         date_published = response.xpath('//meta[@name="date"]/@content').get()
         date_edited = ""
         url = response.url
-        content = response.xpath('//p/text()').getall()
+        content = response.xpath('//article[@id="meldung"]/div/div/p/text()').getall()
         language = ""
         keywords = response.xpath('//meta[@name="keywords"]/@content').get()
         author = response.xpath('//meta[@name="author"]/@content').get()
@@ -51,6 +55,7 @@ class HeiseSpider(scrapy.Spider):
         except:
             print(url + ": JSON object not found...")
 
+        """
         article_meta = {
             'id': id,
             'title': title,
@@ -64,5 +69,17 @@ class HeiseSpider(scrapy.Spider):
             'author': author,
             'media': media
         }
+        """
+        items["title"] = title
+        items["author"] = author
+        items["date_retrieved"] = date_retrieved
+        items["date_published"] = date_published
+        items["date_edited"] = date_edited
+        items["url"] = url
+        items["language"] = language
+        items["keywords"] = keywords
+        items["media"] = media
+        items["article_text"] = content
+        items["category"] = ""
 
-        yield article_meta
+        yield items
