@@ -2,6 +2,7 @@
 import scrapy
 import json
 from ..items import CptItem
+import re
 
 categories = {
     "Politik": {"https://www.wiwo.de/politik/"},
@@ -146,28 +147,36 @@ class WiwoSpider(scrapy.Spider):
                     except:
                         keywords = "no keywords"
 
-                    body = response.xpath('//div[contains(@class, "u-richtext")]/p/text()').getall()
+                    body = response.xpath('//div[contains(@class, "u-richtext")]/p').getall() #/text()
                     body_str = ""
                     for p in body:
                         if not body_str:
                             body_str += p
                         else:
                             body_str = body_str + " " + p
+                    body_str = re.sub("<[^>]+?>", "", body_str)
 
-                    language = "german"
-
+                    for key, values in categories.items():
+                        for value in values:
+                            if value in response.url:
+                                category = key
 
                     items['title'] = title
                     items['author'] = author_str
+                    items['date_retrieved'] = "no date"
                     items['date_published'] = date_published
                     items['date_edited'] = date_modified
                     items['keywords'] = keywords
                     items['media'] = image_str
-                    items['language'] = language
+                    items['language'] = "german"
                     items['url'] = response.url
                     items['article_text'] = body_str
+                    items['category'] = category
+                    #items['raw_html'] = str(response.headers) + response.text
+                    items['source'] = "Wirtschaftswoche"
 
                     yield items
+
 
                     """article = {
                         'title': title,
