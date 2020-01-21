@@ -5,17 +5,18 @@ import scrapy
 
 from ..items import CptItem
 
+categories = {}
 
 class HeiseSpider(scrapy.Spider):
     name = 'heise'
     allowed_domains = ['www.heise.de']
-    start_urls = ['https://www.heise.de/newsticker/it/',
-                  'https://www.heise.de/newsticker/mobiles/',
-                  'https://www.heise.de/newsticker/entertainment/',
-                  'https://www.heise.de/newsticker/wissen/',
-                  'https://www.heise.de/newsticker/netzpolitik/',
-                  'https://www.heise.de/newsticker/wirtschaft/',
-                  'https://www.heise.de/newsticker/journal/']
+    start_urls = ['https://www.heise.de/newsticker/it/']
+                  # 'https://www.heise.de/newsticker/mobiles/',
+                  # 'https://www.heise.de/newsticker/entertainment/',
+                  # 'https://www.heise.de/newsticker/wissen/',
+                  # 'https://www.heise.de/newsticker/netzpolitik/',
+                  # 'https://www.heise.de/newsticker/wirtschaft/',
+                  # 'https://www.heise.de/newsticker/journal/']
 
     def parse(self, response):
         article_xpath = "//a[@class='a-article-teaser__link']/@href"
@@ -25,7 +26,7 @@ class HeiseSpider(scrapy.Spider):
             if re.match(article_url_regex, url):
                 # print(url)
                 article_url = response.urljoin(url)
-                yield scrapy.Request(article_url, callback=self.parse_article)
+                yield scrapy.Request(article_url, callback=self.parse_article, meta={})
 
         next_page = response.xpath('//li[has-class("a-pagination__item--next")]/a/@href').get()
         # print(next_page)
@@ -55,21 +56,6 @@ class HeiseSpider(scrapy.Spider):
         except:
             print(url + ": JSON object not found...")
 
-        """
-        article_meta = {
-            'id': id,
-            'title': title,
-            'date_retrieved': date_retrieved,
-            'date_published': date_published,
-            'date_edited': date_edited,
-            'url': url,
-            'content': content,
-            'language': language,
-            'keywords': keywords,
-            'author': author,
-            'media': media
-        }
-        """
         items["title"] = title
         items["author"] = author
         items["date_retrieved"] = date_retrieved
