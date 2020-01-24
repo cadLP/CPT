@@ -7,6 +7,7 @@ from ..items import CptItem
 
 categories = {}
 
+
 class HeiseSpider(scrapy.Spider):
     name = 'heise'
     allowed_domains = ['www.heise.de']
@@ -29,7 +30,6 @@ class HeiseSpider(scrapy.Spider):
                 yield scrapy.Request(article_url, callback=self.parse_article, meta={})
 
         next_page = response.xpath('//li[has-class("a-pagination__item--next")]/a/@href').get()
-        # print(next_page)
         next_page = response.urljoin(next_page)
 
         if next_page is not None:
@@ -42,19 +42,14 @@ class HeiseSpider(scrapy.Spider):
         title = response.xpath('//meta[@name="title"]/@content').get()
         date_retrieved = ""
         date_published = response.xpath('//meta[@name="date"]/@content').get()
-        date_edited = ""
+        json_meta_obj = json.loads(response.xpath('//script[contains(@type, "ld+json")]/text()').get())
+        date_edited = json_meta_obj[0]['dateModified']
         url = response.url
         content = response.xpath('//article[@id="meldung"]/div/div/p/text()').getall()
-        language = ""
+        language = "de"
         keywords = response.xpath('//meta[@name="keywords"]/@content').get()
         author = response.xpath('//meta[@name="author"]/@content').get()
         media = ""
-
-        try:
-            json_meta_obj = json.loads(response.xpath('//script[contains(@type, "ld+json")]/text()').get())
-            date_edited = json_meta_obj["dateModified"]
-        except:
-            print(url + ": JSON object not found...")
 
         items["title"] = title
         items["author"] = author
