@@ -3,6 +3,7 @@ import json
 import re
 import scrapy
 
+from time import *
 from ..items import CptItem
 
 categories = {}
@@ -11,13 +12,13 @@ categories = {}
 class HeiseSpider(scrapy.Spider):
     name = 'heise'
     allowed_domains = ['www.heise.de']
-    start_urls = ['https://www.heise.de/newsticker/it/']
-                  # 'https://www.heise.de/newsticker/mobiles/',
-                  # 'https://www.heise.de/newsticker/entertainment/',
-                  # 'https://www.heise.de/newsticker/wissen/',
-                  # 'https://www.heise.de/newsticker/netzpolitik/',
-                  # 'https://www.heise.de/newsticker/wirtschaft/',
-                  # 'https://www.heise.de/newsticker/journal/']
+    start_urls = ['https://www.heise.de/newsticker/it/',
+                  'https://www.heise.de/newsticker/mobiles/',
+                  'https://www.heise.de/newsticker/entertainment/',
+                  'https://www.heise.de/newsticker/wissen/',
+                  'https://www.heise.de/newsticker/netzpolitik/',
+                  'https://www.heise.de/newsticker/wirtschaft/',
+                  'https://www.heise.de/newsticker/journal/']
 
     def parse(self, response):
         article_xpath = "//a[@class='a-article-teaser__link']/@href"
@@ -40,7 +41,7 @@ class HeiseSpider(scrapy.Spider):
 
         id = 0
         title = response.xpath('//meta[@name="title"]/@content').get()
-        date_retrieved = ""
+        date_retrieved = strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
         date_published = response.xpath('//meta[@name="date"]/@content').get()
         json_meta_obj = json.loads(response.xpath('//script[contains(@type, "ld+json")]/text()').get())
         date_edited = json_meta_obj[0]['dateModified']
@@ -50,6 +51,15 @@ class HeiseSpider(scrapy.Spider):
         keywords = response.xpath('//meta[@name="keywords"]/@content').get()
         author = response.xpath('//meta[@name="author"]/@content').get()
         media = ""
+        category = ""
+        category_set = {'it', 'mobiles', 'entertainment', 'wissen',
+                        'netzpolitik', 'wirtschaft', 'journal'}
+        referrer_list = str(response.request.headers.get('Referer', None)).split("/")
+
+        if referrer_list[-2] in category_set:
+            category = referrer_list[-2]
+        elif referrer_list[-3] in category_set:
+            category = referrer_list[-3]
 
         items["title"] = title
         items["author"] = author
@@ -61,6 +71,6 @@ class HeiseSpider(scrapy.Spider):
         items["keywords"] = keywords
         items["media"] = media
         items["article_text"] = content
-        items["category"] = ""
+        items["category"] = category
 
         yield items
