@@ -85,6 +85,8 @@ class FazSpider(scrapy.Spider):
         metadata_ld = json.loads(
             response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
 
+        keywords = response.xpath('//meta[contains(@name, "key")]/@content').get()
+
         next_page = response.xpath(
             "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
         payed_content = metadata["article"]["type"]
@@ -157,28 +159,14 @@ class FazSpider(scrapy.Spider):
                         if value in response.url:
                             category = key
 
-
-                """article = {
-                    'title': title,
-                    'author': author_str,
-                    'payed_content': payed_content,
-                    'description': description,
-                    'article_body': article_body,
-                    'published': published,
-                    'modified': modified,
-                    'images': image_str,
-                    'url': response.url,
-                    'page_count': pagination
-                }"""
-
                 items["title"] = title
                 items["author"] = author_str
-                items["date_retrieved"] = "no date yet"
+                #items["date_retrieved"] = "no date yet"
                 items["date_published"] = published
                 items["date_edited"] = modified
                 items["url"] = response.url
                 items["language"] = "German"
-                items["keywords"] = "No Keywords"
+                items["keywords"] = keywords
                 items["media"] = image_str
                 items["article_text"] = article_body
                 items["category"] = category
