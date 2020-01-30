@@ -170,6 +170,7 @@ class FazSpider(scrapy.Spider):
                 items["media"] = image_str
                 items["article_text"] = article_body
                 items["category"] = category
+                items["html"] = response.body
 
                 if next_page:
                     yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": items})
@@ -184,6 +185,7 @@ class FazSpider(scrapy.Spider):
             "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
 
         item["article_text"] = item["article_text"] + metadata_ld["articleBody"]
+        item["html"] = item["html"] + response.body
 
         if next_page:
             yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": response.meta['item']})

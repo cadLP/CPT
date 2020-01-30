@@ -23,6 +23,7 @@ class FazPipeline(object):
     def process_item(self, item, spider):
         self.store_db_metadata(item)
         self.store_db_text(item)
+        self.store_db_html()
         return item
 
     def store_db_metadata(self, item):
@@ -49,6 +50,16 @@ class FazPipeline(object):
             """INSERT INTO text (article_text, metadaten_id)
             VALUES ('{text}', (SELECT id FROM metadaten WHERE url='{url}'));""".format(
                 text=item["article_text"],
+                url=item["url"]
+            )
+         )
+        self.conn.commit()
+
+    def store_db_html(self, item):
+        self.cur.execute(
+            """INSERT INTO raw_html (html, metadaten_id)
+            VALUES ('{html}', (SELECT id FROM metadaten WHERE url='{url}'));""".format(
+                html=item["html"],
                 url=item["url"]
             )
          )
