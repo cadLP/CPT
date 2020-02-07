@@ -77,7 +77,7 @@ class FazSpider(scrapy.Spider):
 
             next_page = response.xpath(next_page_selector).get()
             self.logger.info('next_page %s', next_page)
-            # if next_page is not None:
+            #if next_page is not None:
             #    yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
@@ -185,7 +185,7 @@ class FazSpider(scrapy.Spider):
             "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
 
         item["article_text"] = item["article_text"] + metadata_ld["articleBody"]
-        item["html"] = item["html"] + response.body
+        #item["html"] = item["html"] + response.body
 
         if next_page:
             yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": response.meta['item']})
