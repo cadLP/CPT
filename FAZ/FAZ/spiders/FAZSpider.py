@@ -170,7 +170,8 @@ class FazSpider(scrapy.Spider):
                 items["media"] = image_str
                 items["article_text"] = article_body
                 items["category"] = category
-                items["html"] = response.body
+                #items["html"] = response.body
+                items["source"] = "FAZ"
 
                 if next_page:
                     yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": items})

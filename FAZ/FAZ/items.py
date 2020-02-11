@@ -22,3 +22,4 @@ class CptItem(scrapy.Item):
     article_text = scrapy.Field()
     category = scrapy.Field()
     html = scrapy.Field()
+    source = scrapy.Field()
