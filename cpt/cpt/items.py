@@ -22,3 +22,5 @@ class CptItem(scrapy.Item):
     media = scrapy.Field()
     article_text = scrapy.Field()
     category = scrapy.Field()
+    html = scrapy.Field()
+    source = scrapy.Field()
