@@ -3,6 +3,8 @@ import scrapy
 import json
 from ..items import CptItem
 
+
+
 categories = {
     "Politik": {"https://www.faz.net/aktuell/politik", "https://www.faz.net/aktuell/brexit/"},
     "Wirtschaft": {"https://www.faz.net/aktuell/wirtschaft/"},
@@ -42,10 +44,22 @@ for x, y in categories.items():
                 all_categories.append(a)
 
 class FazSpider(scrapy.Spider):
+    """
+    This class is the Spider for the crawler of the FAZ
+    """
     name = 'FAZSpider'
     start_urls = selected_categories
 
     def parse(self, response):
+        """
+        In this function we look for the links of the subcategories. Some of the predefined categories only
+        consisted of subcategories, like "Meinung". So in this instance the links are being followed using the request method.
+        For the other categories we loop through the results using a XPath Selector and follow these links.
+        In both cases the the request uses the method parse_index as a callback.
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+        :type response: dict
+        """
         selector_subcategories = "//div[contains(@class, 'Articles')]//a[contains(@class, 'is-link') and starts-with(@href, '/aktuell')]/@href"
 
         if response.xpath(selector_subcategories).get():
@@ -60,6 +74,20 @@ class FazSpider(scrapy.Spider):
             yield request
 
     def parse_index(self, response):
+        """
+        This function will be called after the parse function. It loops through the results using a XPATH selector.
+        The XPATH selects the links of the articles in the each subcategory. Most pages have the same setup, only the
+        subcategory "Reise" has a different one. So there are two different XPATH selectors. Another restriction is,
+        that links to blogs will not be selected.
+        In addition the function looks for the link to the next page. This link yields a new request to the next page,
+        registering itself as callback to handle the data extraction for the next page and to keep the crawling going
+        through all the pages.
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
+        and fed to the Spiders for processing
+        :type response: dict
+        """
+
         selector_articles = '//div[contains(@class, "ctn-List")]//a[contains(@class, "ContentLink")]/@href'
         selector_articles_reise = "//a[contains(@class, 'ContentLink')]/@href"
         next_page_selector = '//li[contains(@class, "next-page")]/a/@href'
@@ -81,6 +109,21 @@ class FazSpider(scrapy.Spider):
             #    yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
+        """
+        This function collects all the relevant data for the database from the articles. Most metadata can be collected
+        using the ld+json element that is add into the source code. This also lets us differentiate between payed and
+        unpayed content. We will only scrape unpaid content. Keywords are not in the ld+json element, so it will be
+        selected using XPATH. The metadata will be written into a scrapy item element.
+        There are articles that are divided into multiple pages. To scrape these, the function looks for a link to the
+        next page and yields a new request to it, registering parse_multiple_page_article as callback. In the new request
+        the already scraped item will be handed over using the method meta.
+        If there is only one page the item element will be the end result.
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
+        and fed to the Spiders for processing
+        :type response: dict
+        """
+
         metadata = json.loads(response.xpath('//div/@data-digital-data').get())
         metadata_ld = json.loads(
             response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
@@ -179,6 +222,18 @@ class FazSpider(scrapy.Spider):
                     yield items
 
     def parse_multiple_page_article(self, response):
+        """
+        This function will only be called if there are multiple pages to an article. Only the article text will need to
+        be extended, so the rest of the metadata will be the same. If there are more than two pages the function looks
+        for the link to the next page. This link yields a new request to the next page, registering itself as callback
+        and handing over the current item.
+        If there are no more next pages the item element will be the endresult.
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
+        and fed to the Spiders for processing
+        :type response: dict
+        """
+
         item = response.meta['item']
         metadata_ld = json.loads(
             response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
