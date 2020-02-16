@@ -72,5 +72,7 @@ class HeiseSpider(scrapy.Spider):
         items["media"] = media
         items["article_text"] = content
         items["category"] = category
+        items["raw_html"] = str(response.headers) + response.text
+        items["source"] = "Heise"
 
         yield items
