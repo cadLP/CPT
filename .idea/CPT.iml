@@ -9,6 +9,13 @@
     <option name="workdir" value="$MODULE_DIR$" />
     <option name="DOC_DIR" value="$MODULE_DIR$" />
   </component>
+  <component name="TemplatesService">
+    <option name="TEMPLATE_FOLDERS">
+      <list>
+        <option value="$MODULE_DIR$/_templates" />
+      </list>
+    </option>
+  </component>
   <component name="TestRunnerService">
     <option name="projectConfiguration" value="pytest" />
     <option name="PROJECT_TEST_RUNNER" value="pytest" />
