@@ -1,16 +1,16 @@
 import psycopg2
 
-hostname = "localhost"
-username = "postgres"
-password = "2522"
-database = "NewspaperCrawler"
+# hostname = "localhost"
+# username = "postgres"
+# password = "2522"
+# database = "NewspaperCrawler"
 
 class FazPipeline(object):
     def __init__(self):
         self.create_connection()
 
     def create_connection(self):
-        self.conn = psycopg2.connect(host=hostname, user=username, password=password, dbname=database)
+        self.conn = psycopg2.connect(host="localhost", user="postgres", password="2522", dbname="NewspaperCrawler")
         self.cur = self.conn.cursor()
 
     def process_item(self, item, spider):

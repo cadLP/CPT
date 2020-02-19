@@ -3,6 +3,7 @@ import treetaggerwrapper
 import pprint
 import de_core_news_sm
 
+#pipeline datenbank anpassen, dogstring
 
 # hostname = "localhost"
 # username = "postgres"
@@ -20,14 +21,18 @@ import de_core_news_sm
 #
 # cur.execute("""SELECT * FROM text;""")
 # results = cur.fetchall()
-class CrawlerTagging:
+class CrawlerTagging():
 
-    def __init__(self):
+    def __init__(self, tagging_method):
+        self.tagging_method = tagging_method
         self.create_connection()
         self.get_texts()
-        self.treetagger_pos()
-        self.spacy_pos()
-        self.spacy_ner()
+        if self.tagging_method is "TreeTagger":
+            self.treetagger_pos()
+        elif self.tagging_method is "Spacy POS":
+            self.spacy_pos()
+        elif self.tagging_method is "Spacy NER":
+            self.spacy_ner()
 
     def create_connection(self):
         self.conn = psycopg2.connect(host="localhost", user="postgres", password="2522", dbname="NewspaperCrawler")
@@ -84,5 +89,5 @@ class CrawlerTagging:
             self.cur.execute(sql, data)
             self.conn.commit()
 
-
-CrawlerTagging()
+# TreeTagger, Spacy POS, Spacy NER
+CrawlerTagging("TreeTagger")
