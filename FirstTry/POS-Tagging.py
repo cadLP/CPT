@@ -1,9 +1,7 @@
 import psycopg2
 import treetaggerwrapper
-import pprint
 import de_core_news_sm
 
-#pipeline datenbank anpassen, dogstring
 
 # hostname = "localhost"
 # username = "postgres"
@@ -21,28 +19,50 @@ import de_core_news_sm
 #
 # cur.execute("""SELECT * FROM text;""")
 # results = cur.fetchall()
-class CrawlerTagging():
+class CrawlerTagging:
+    """
+    This class will call the different tagging methods that are available.
+    The options are CrawlerTagging("TreeTagger"), CrawlerTagging("Spacy POS") and CrawlerTagging("Spacy NER").
+    """
 
-    def __init__(self, tagging_method):
-        self.tagging_method = tagging_method
+    def __init__(self, tagging_method=[], *args, **kwargs):
+        """
+        The __init__ function will call all the other functions in the class. Depending on which tagging_method is
+        added it will select the corresponding function.
+
+        :param tagging_method: Selection which Tagging Method should be called.
+        :type tagging_method: string
+        """
+        super(CrawlerTagging, self).__init__(*args, **kwargs)
         self.create_connection()
         self.get_texts()
-        if self.tagging_method is "TreeTagger":
-            self.treetagger_pos()
-        elif self.tagging_method is "Spacy POS":
-            self.spacy_pos()
-        elif self.tagging_method is "Spacy NER":
-            self.spacy_ner()
+        for arg in tagging_method:
+            if arg == "TreeTagger":
+                self.treetagger_pos()
+            elif arg == "Spacy POS":
+                self.spacy_pos()
+            elif arg == "Spacy NER":
+                self.spacy_ner()
 
     def create_connection(self):
+        """
+        Creates a connection to the predefined database.
+        """
         self.conn = psycopg2.connect(host="localhost", user="postgres", password="2522", dbname="NewspaperCrawler")
         self.cur = self.conn.cursor()
 
     def get_texts(self):
+        """
+        Getting all the scraped newspaper articles from the database.
+
+        """
         self.cur.execute("""SELECT * FROM text;""")
         self.results = self.cur.fetchall()
 
     def treetagger_pos(self):
+        """
+        Tagging the texts using the German POS Tagger from TreeTagger. And writing it back into the database.
+        """
         self.cur.execute("""INSERT INTO method (description, id) VALUES ('TreeTagger_POS', '1') ON CONFLICT DO NOTHING;""")
         self.conn.commit()
 
@@ -56,6 +76,9 @@ class CrawlerTagging():
             self.conn.commit()
 
     def spacy_pos(self):
+        """
+        Tagging the texts using the German POS Tagger from Spacy. And writing it back into the database.
+        """
         self.cur.execute("""INSERT INTO method (description, id) VALUES ('Spacy_POS', '2') ON CONFLICT DO NOTHING;""")
         self.conn.commit()
 
@@ -71,6 +94,9 @@ class CrawlerTagging():
             self.conn.commit()
 
     def spacy_ner(self):
+        """
+        Getting Named Entities using NER from Spacy. And writing it back into the database.
+        """
         self.cur.execute("""INSERT INTO method (description, id) VALUES ('Spacy_NER', '3') ON CONFLICT DO NOTHING;""")
         self.conn.commit()
 
@@ -90,4 +116,4 @@ class CrawlerTagging():
             self.conn.commit()
 
 # TreeTagger, Spacy POS, Spacy NER
-CrawlerTagging("TreeTagger")
+CrawlerTagging(["TreeTagger", "Spacy POS"])
