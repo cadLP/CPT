@@ -5,6 +5,7 @@ from FAZ.FAZ.items import CptItem
 from twisted.internet import reactor, defer
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
+import psycopg2
 
 class FazSpider(scrapy.Spider):
     """
@@ -36,6 +37,7 @@ class FazSpider(scrapy.Spider):
 
     selected_categories = []
     all_categories = []
+    existing_urls = []
 
     def __init__(self, cat_list=[], *args, **kwargs):
         """
@@ -56,6 +58,14 @@ class FazSpider(scrapy.Spider):
         for c in self.all_cat_list:
             for url in self.categories[c]:
                 self.all_categories.append(url)
+
+        conn = psycopg2.connect(host="localhost", user="postgres", password="2522", dbname="NewspaperCrawler")
+        cur = conn.cursor()
+        cur.execute("""SELECT url FROM metadaten;""")
+        results = cur.fetchall()
+
+        for a in results:
+            self.existing_urls.append(a[0])
 
     name = 'FAZSpider'
     start_urls = selected_categories
@@ -99,21 +109,19 @@ class FazSpider(scrapy.Spider):
         selector_articles_reise = "//a[contains(@class, 'ContentLink') and contains(@href, '/reise/')]/@href"
         next_page_selector = '//li[contains(@class, "next-page")]/a/@href'
 
-        if "reise" in response.url:
-            for faz_article_r in response.xpath(selector_articles_reise).getall():
-                # self.logger.info('Result Reise: %s', faz_article_r)
-                yield response.follow(faz_article_r, self.parse_article)
-        else:
-            for faz_article in response.xpath(selector_articles).getall():
-                if "blogs." not in faz_article:
-                    # self.logger.info('Result: %s', faz_article)
-                    # yield {"url": faz_article}
-                    yield response.follow(faz_article, self.parse_article)
+        if response.url not in self.existing_urls:
+            if "reise" in response.url:
+                for faz_article_r in response.xpath(selector_articles_reise).getall():
+                    yield response.follow(faz_article_r, self.parse_article)
+            else:
+                for faz_article in response.xpath(selector_articles).getall():
+                    if "blogs." not in faz_article:
+                        yield response.follow(faz_article, self.parse_article)
 
-            next_page = response.xpath(next_page_selector).get()
-            self.logger.info('next_page %s', next_page)
-            #if next_page is not None:
-            #    yield response.follow(next_page, self.parse_index)
+                next_page = response.xpath(next_page_selector).get()
+                self.logger.info('next_page %s', next_page)
+                #if next_page is not None:
+                #    yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
         """
