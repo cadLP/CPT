@@ -10,6 +10,7 @@ categories = {}
 
 
 class HeiseSpider(scrapy.Spider):
+    """ This class implements the spider for crawling the website heise.de"""
     name = 'heise'
     allowed_domains = ['www.heise.de']
     start_urls = ['https://www.heise.de/newsticker/it/',
@@ -21,6 +22,11 @@ class HeiseSpider(scrapy.Spider):
                   'https://www.heise.de/newsticker/journal/']
 
     def parse(self, response):
+        """
+
+        :param response:
+        :return:
+        """
         article_xpath = "//a[@class='a-article-teaser__link']/@href"
         article_url_regex = re.compile(r'/newsticker/meldung/.+?')
 
@@ -37,9 +43,13 @@ class HeiseSpider(scrapy.Spider):
             yield scrapy.Request(next_page, callback=self.parse)
 
     def parse_article(self, response):
+        """
+
+        :param response:
+        :return:
+        """
         items = CptItem()
 
-        id = 0
         title = response.xpath('//meta[@name="title"]/@content').get()
         date_retrieved = strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
         date_published = response.xpath('//meta[@name="date"]/@content').get()
