@@ -12,7 +12,7 @@ password = "2522"
 database = "NewspaperCrawler"
 
 
-class FazPipeline(object):
+class CptPipeline(object):
     def __init__(self):
         self.create_connection()
 

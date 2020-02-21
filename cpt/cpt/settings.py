@@ -14,6 +14,7 @@ BOT_NAME = 'cpt'
 SPIDER_MODULES = ['cpt.spiders']
 NEWSPIDER_MODULE = 'cpt.spiders'
 
+LOG_LEVEL = 'CRITICAL'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'cpt (+http://www.yourdomain.com)'

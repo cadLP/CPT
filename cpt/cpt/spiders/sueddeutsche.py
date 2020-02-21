@@ -2,10 +2,16 @@
 import scrapy
 import json
 from ..items import CptItem
-from datetime import datetime
-import ast
+import psycopg2
+
 
 class SueddeutscheSpider(scrapy.Spider):
+    hostname = "localhost"
+    username = "postgres"
+    password = "maybe"
+    database = "NewspaperCrawler"
+    known_urls = []
+
     category_urls = {
         "Politik": {"https://www.sueddeutsche.de/politik"},
         "Wirtschaft": {"https://www.sueddeutsche.de/wirtschaft"},
@@ -23,27 +29,52 @@ class SueddeutscheSpider(scrapy.Spider):
     start_urls = []
     allcategories = ["Sport", "Politik", "Wirtschaft", "Meinung", "Regional", "Kultur", "Gesellschaft",
                      "Wissen", "Digital", "Karriere", "Reisen", "Technik"]
+    ducplicates_sql = """SELECT url FROM metadaten;"""
 
-    categories = ["Wissen"]
-    for c in categories:
-        for url in category_urls[c]:
-            start_urls.append(url)
-    """ def __init__(self, cat_list=[], *args, **kwargs):
+    categories = ["Kultur"]
+   # for c in categories:
+   #     for url in category_urls[c]:
+   #         start_urls.append(url)
+
+    def __init__(self, cat_list=[], *args, **kwargs):
         super(SueddeutscheSpider, self).__init__(*args, **kwargs)
         for c in cat_list:
             for url in self.category_urls[c]:
-                self.start_urls.append(url)"""
+                self.start_urls.append(url)
+        self.create_connection()
+
+        self.cur.execute(self.ducplicates_sql)
+        for url in self.cur:
+            self.known_urls.append(url[0])
+        self.cur.close()
+
+    def create_connection(self):
+        """
+        Creates a connection to the predefined database.
+        """
+        self.conn = psycopg2.connect(host=self.hostname, user=self.username, password=self.password, dbname=self.database)
+        self.cur = self.conn.cursor()
+
 
     def start_requests(self):
+        """
+        Adds Urls already in the database to exclusion list.
+        """
+        # self.create_connection()
+        # self.cur.execute(self.ducplicates_sql)
+        # for url in self.cur:
+        #     self.known_urls.append(url[0])
+        # self.cur.close()
+
         for url in self.start_urls:
             yield scrapy.Request(url, self.parse)
+
     name = 'sueddeutsche'
     allowed_domains = ['sueddeutsche.de']
 
     def parse(self, response):
-        button_id = response.xpath("//body/@data-page-id").get()
-        # button_id = "sz.2.237"
 
+        button_id = response.xpath("//body/@data-page-id").get()
         button_url = "https://www.sueddeutsche.de/overviewpage/additionalDepartmentTeasers?departmentId="+button_id+"&offset=0&size=25"
 
         yield scrapy.Request(button_url, self.parselist, meta={"button": button_id, "counter": 0})
@@ -53,28 +84,27 @@ class SueddeutscheSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parsethema)"""
 
     def parselist(self, response):
-        #button_id = "sz.2.237"
         button_id = response.meta["button"]
         counter = response.meta["counter"]
         if response.xpath('//body[@class="szde-errorpage"]').get() is not None:
             return
-        counter += 0
+        counter += 1
         offset = str(counter*25)
         next_url = "https://www.sueddeutsche.de/overviewpage/additionalDepartmentTeasers?departmentId="+button_id+"&offset="+offset+"&size=25"
         urls = response.css('div.sz-teaserlist-element--separator-line').xpath('a/@href').getall()
         for url in urls:
-            yield scrapy.Request(url, self.parsearticle)
+            if url not in self.known_urls:
+                yield scrapy.Request(url, self.parsearticle)
 
         yield scrapy.Request(next_url, callback=self.parselist, meta={"button": button_id, "counter": counter})
 
-    def parsethema(self, response):
-
-        urls = response.css('div.sz-teaserlist-element--separator-line').xpath('a/@href').getall()
+    """def parsethema(self, response):
+        urls = response.css('div.sz-teaserlist-element').xpath('a/@href').getall()
         nextpage = response.css('.pagination__page--next').xpath('@href').get()
         for url in urls:
             yield scrapy.Request(url, self.parsearticle)
         if nextpage:
-            yield scrapy.Request(nextpage, callback=self.parsethema)
+            yield scrapy.Request(nextpage, callback=self.parsethema)"""
 
     def parsearticle(self, response):
         # abgabe 25.02 + prüfung
@@ -125,21 +155,17 @@ class SueddeutscheSpider(scrapy.Spider):
         except:
             title = "no_title"
         try:
-            published = data["datePublished"]
+            published = data["datePublished"][0:10]
         except:
             published = "no_date"
         try:
-            modified = data["dateModified"]
+            modified = data["dateModified"][0:10]
         except:
             modified = "no_date"
         try:
             image_url = data["image"]["url"]
         except:
             image_url = "no_url"
-        try:
-            wordcount = data["wordCount"]
-        except:
-            wordcount = "N/A"
         try:
             keywords = data["keywords"]
         except:
@@ -160,17 +186,16 @@ class SueddeutscheSpider(scrapy.Spider):
         item = CptItem()
         item["title"] = title
         item["author"] = authornames
-        item["date_retrieved"] = str(datetime.now())
         item["date_published"] = published
         item["date_edited"] = modified
         item["url"] = response.url
         item["language"] = "German"
         item["keywords"] = keywords
         item["media"] = image_url
-        item["article_text"] = "Dummytext" #  text
+        item["article_text"] = text
         item["category"] = str(category)
-        item["raw_html"] = "DummyHTML"  # response.body
+        item["raw_html"] = response.text
+        item["source"] = "Sueddeutsche.de"
 
-        #testinglist = ","+title+","+authornames+","+str(datetime.now())+","+published+modified+response.url+keywords+"IMG:"+image_url+category+text
-        yield {url:category}
-        #yield item
+        yield item
+        #yield {url: self.known_urls}

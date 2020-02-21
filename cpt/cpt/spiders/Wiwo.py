@@ -4,43 +4,43 @@ import json
 from ..items import CptItem
 import re
 
-# Creates dictionary to store start url for each category
-categories = {
-    "Politik": {"https://www.wiwo.de/politik/"},
-    "Wirtschaft": {"https://www.wiwo.de/finanzen/", "https://www.wiwo.de/unternehmen/"},
-    "Gesellschaft": {"https://www.wiwo.de/erfolg/trends/", "https://www.wiwo.de/technologie/green/"},
-    "Technik": {"https://www.wiwo.de/technologie/"},
-    "IT": {"https://www.wiwo.de/unternehmen/it/", "https://www.wiwo.de/technologie/digitale-welt/"},
-    "Wissen": {"https://www.wiwo.de/unternehmen/energie/", "https://www.wiwo.de/technologie/umwelt/",
-               "https://www.wiwo.de/technologie/forschung/"},
-    "Karriere": {"https://www.wiwo.de/erfolg/", "https://www.wiwo.de/erfolg/hochschule/"}
-}
-
-# Creates a list including every possible category
-cat = ["Politik", "Wirtschaft", "Gesellschaft", "Technik", "IT", "Wissen", "Karriere"]
-# Creates a list including the selected categories to crawl
-selected_cat = ["Wirtschaft"]
-
-# Creates two empty lists
-selected_categories = []
-all_categories = []
-
-# Loop which ensures, that start urls for one category included in start urls from another category are left out during scraping
-# Categories are appended to the empty lists above
-for x, y in categories.items():
-    for i in selected_cat:
-        if i == x:
-            for a in y:
-                selected_categories.append(a)
-    for i in cat:
-        if i == x:
-            for a in y:
-                all_categories.append(a)
-
 
 # Creates the spider
 # Sets start_urls to the start urls defined in the dictionary 'categories'
 class WiwoSpider(scrapy.Spider):
+    # Creates dictionary to store start url for each category
+    categories = {
+        "Politik": {"https://www.wiwo.de/politik/"},
+        "Wirtschaft": {"https://www.wiwo.de/finanzen/", "https://www.wiwo.de/unternehmen/"},
+        "Gesellschaft": {"https://www.wiwo.de/erfolg/trends/", "https://www.wiwo.de/technologie/green/"},
+        "Technik": {"https://www.wiwo.de/technologie/"},
+        "IT": {"https://www.wiwo.de/unternehmen/it/", "https://www.wiwo.de/technologie/digitale-welt/"},
+        "Wissen": {"https://www.wiwo.de/unternehmen/energie/", "https://www.wiwo.de/technologie/umwelt/",
+                   "https://www.wiwo.de/technologie/forschung/"},
+        "Karriere": {"https://www.wiwo.de/erfolg/", "https://www.wiwo.de/erfolg/hochschule/"}
+    }
+
+    # Creates a list including every possible category
+    cat = ["Politik", "Wirtschaft", "Gesellschaft", "Technik", "IT", "Wissen", "Karriere"]
+    # Creates a list including the selected categories to crawl
+    selected_cat = ["Wirtschaft"]
+
+    # Creates two empty lists
+    selected_categories = []
+    all_categories = []
+
+    # Loop which ensures, that start urls for one category included in start urls from another category are left out during scraping
+    # Categories are appended to the empty lists above
+    for x, y in categories.items():
+        for i in selected_cat:
+            if i == x:
+                for a in y:
+                    selected_categories.append(a)
+        for i in cat:
+            if i == x:
+                for a in y:
+                    all_categories.append(a)
+
     name = 'Wiwo'
     allowed_domains = ['www.wiwo.de']
     start_urls = selected_categories
