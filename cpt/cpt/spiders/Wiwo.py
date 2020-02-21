@@ -25,6 +25,7 @@ class WiwoSpider(scrapy.Spider):
 
     selected_categories = []
     all_categories = []
+    existing_urls = []
 
     def __init__(self, cat_list=[], *args, **kwargs):
         """
@@ -44,6 +45,13 @@ class WiwoSpider(scrapy.Spider):
         for c in self.cat:
             for url in self.categories[c]:
                 self.all_categories.append(url)
+
+        self.conn = psycopg2.connect(host="localhost", user="postgres", password="postgres", dbname="cpt")
+        self.cur = self.conn.cursor()
+        self.cur.execute("""SELECT url FROM metadaten;""")
+
+        for a in self.cur:
+            self.existing_urls.append(a[0])
 
     name = 'Wiwo'
     allowed_domains = ['www.wiwo.de']
@@ -207,7 +215,6 @@ class WiwoSpider(scrapy.Spider):
 
                     items['title'] = title
                     items['author'] = author_str
-                    items['date_retrieved'] = "no date"
                     items['date_published'] = date_published
                     items['date_edited'] = date_modified
                     items['keywords'] = keywords_str
@@ -216,7 +223,7 @@ class WiwoSpider(scrapy.Spider):
                     items['url'] = response.url
                     items['article_text'] = body_str
                     items['category'] = category
-                    #items['html'] = str(response.headers) + response.text
+                    items['html'] = str(response.headers) + response.text
                     items['source'] = "Wirtschaftswoche"
 
                     yield items
