@@ -11,8 +11,8 @@
 
 BOT_NAME = 'FAZ'
 
-SPIDER_MODULES = ['FAZ.spiders']
-NEWSPIDER_MODULE = 'FAZ.spiders'
+SPIDER_MODULES = ['FAZ.FAZ.spiders']
+NEWSPIDER_MODULE = 'FAZ.FAZ.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

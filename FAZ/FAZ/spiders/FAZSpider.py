@@ -5,7 +5,6 @@ from FAZ.FAZ.items import CptItem
 import psycopg2
 
 
-
 class FazSpider(scrapy.Spider):
     """
     This class is the Spider for the crawler of the FAZ
@@ -60,12 +59,11 @@ class FazSpider(scrapy.Spider):
             for url in self.categories[c]:
                 self.all_categories.append(url)
 
-        conn = psycopg2.connect(host="localhost", user="postgres", password="2522", dbname="NewspaperCrawler")
-        cur = conn.cursor()
-        cur.execute("""SELECT url FROM metadaten;""")
-        results = cur.fetchall()
+        self.conn = psycopg2.connect(host="localhost", user="postgres", password="2522", dbname="NewspaperCrawler")
+        self.cur = self.conn.cursor()
+        self.cur.execute("""SELECT url FROM metadaten;""")
 
-        for a in results:
+        for a in self.cur:
             self.existing_urls.append(a[0])
 
     name = 'FAZSpider'
