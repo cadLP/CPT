@@ -2,10 +2,9 @@
 import scrapy
 import json
 from FAZ.FAZ.items import CptItem
-from twisted.internet import reactor, defer
-from scrapy.crawler import CrawlerRunner
-from scrapy.utils.log import configure_logging
 import psycopg2
+
+
 
 class FazSpider(scrapy.Spider):
     """
@@ -41,8 +40,10 @@ class FazSpider(scrapy.Spider):
 
     def __init__(self, cat_list=[], *args, **kwargs):
         """
-        All categories are stored in a dictionary. Here this dictionary will be converted into a list of all the relevant
-        URLs.
+        All categories are stored in a dictionary. Here this dictionary will be converted into a list of all the
+        relevant category URLs.
+        A list of all existing URLs in the database will be created. This list will be compared to the parsed
+        article urls.
 
         :param cat_list: A list of the categories that should be scraped.
         :type cat_list: list
@@ -213,7 +214,7 @@ class FazSpider(scrapy.Spider):
                     items["media"] = image_str
                     items["article_text"] = article_body
                     items["category"] = category
-                    items["html"] = response.body
+                    #items["html"] = response.body
                     items["source"] = "FAZ"
 
                     if next_page:
@@ -241,24 +242,27 @@ class FazSpider(scrapy.Spider):
             "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
 
         item["article_text"] = item["article_text"] + metadata_ld["articleBody"]
-        item["html"] = item["html"] + response.body
+        #item["html"] = item["html"] + response.body
 
         if next_page:
             yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": response.meta['item']})
         else:
             yield item
 
-configure_logging()
-runner = CrawlerRunner()
-allcategories = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik",
-                "Meinung", "Wissen", "Regional", "Karriere"]
-testcategories = ["Politik", "Meinung"]
-@defer.inlineCallbacks
-def crawl():
 
-    #yield runner.crawl(SueddeutscheSpider(categories=testcategories))
-    yield runner.crawl(FazSpider(cat_list=testcategories))
-    reactor.stop()
-
-crawl()
-reactor.run()
+# crawler_settings = Settings()
+# crawler_settings.setmodule(cptssettings)
+# configure_logging()
+# runner = CrawlerRunner(settings=crawler_settings)
+# allcategories = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik",
+#                 "Meinung", "Wissen", "Regional", "Karriere"]
+# testcategories = ["Politik", "Meinung"]
+# @defer.inlineCallbacks
+# def crawl():
+#
+#     #yield runner.crawl(SueddeutscheSpider(categories=testcategories))
+#     yield runner.crawl(FazSpider(cat_list=testcategories))
+#     reactor.stop()
+#
+# crawl()
+# reactor.run()
