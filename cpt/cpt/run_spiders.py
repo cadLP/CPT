@@ -13,9 +13,9 @@ runner = CrawlerRunner()
 @defer.inlineCallbacks
 def crawl():
     yield runner.crawl(HeiseSpider)
-    yield runner.crawl(WiwoSpider)
-    yield runner.crawl(SueddeutscheSpider)
-    yield runner.crawl(FazSpider)
+    # yield runner.crawl(WiwoSpider)
+    # yield runner.crawl(SueddeutscheSpider)
+    # yield runner.crawl(FazSpider)
     reactor.stop()
 
 
