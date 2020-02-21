@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
-
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://doc.scrapy.org/en/latest/topics/items.html
-
 import scrapy
 
-
 class CptItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
+    """
+    This class defines the fields for our items the Spiders store the data in.
+    Field objects are used to specify metadata for each field.
+    """
     title = scrapy.Field()
     author = scrapy.Field()
     date_retrieved = scrapy.Field()
@@ -22,5 +17,5 @@ class CptItem(scrapy.Item):
     media = scrapy.Field()
     article_text = scrapy.Field()
     category = scrapy.Field()
-    raw_html = scrapy.Field()
+    html = scrapy.Field()
     source = scrapy.Field()

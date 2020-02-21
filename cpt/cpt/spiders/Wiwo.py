@@ -3,69 +3,77 @@ import scrapy
 import json
 from ..items import CptItem
 import re
+import psycopg2
 
-#Creates dictionary to store start url for each category
-categories = {
-    "Politik": {"https://www.wiwo.de/politik/"},
-    "Wirtschaft": {"https://www.wiwo.de/finanzen/", "https://www.wiwo.de/unternehmen/"},
-    "Gesellschaft": {"https://www.wiwo.de/erfolg/trends/", "https://www.wiwo.de/technologie/green/"},
-    "Technik": {"https://www.wiwo.de/technologie/"},
-    "IT": {"https://www.wiwo.de/unternehmen/it/", "https://www.wiwo.de/technologie/digitale-welt/"},
-    "Wissen": {"https://www.wiwo.de/unternehmen/energie/", "https://www.wiwo.de/technologie/umwelt/",
-               "https://www.wiwo.de/technologie/forschung/"},
-    "Karriere": {"https://www.wiwo.de/erfolg/", "https://www.wiwo.de/erfolg/hochschule/"}
-}
-
-#Creates a list including every possible category
-cat = ["Politik", "Wirtschaft", "Gesellschaft", "Technik", "IT", "Wissen", "Karriere"]
-#Creates a list including the selected categories to crawl
-selected_cat = ["Wirtschaft"]
-
-#Creates two empty lists
-selected_categories = []
-all_categories = []
-
-#Loop which ensures, that start urls for one category included in start urls from another category are left out during scraping
-#Categories are appended to the empty lists above
-for x, y in categories.items():
-    for i in selected_cat:
-        if i == x:
-            for a in y:
-                selected_categories.append(a)
-    for i in cat:
-        if i == x:
-            for a in y:
-                all_categories.append(a)
-
-#Creates the spider
-#Sets start_urls to the start urls defined in the dictionary 'categories'
 class WiwoSpider(scrapy.Spider):
+    """
+    This class creates the Spider for the crawler of the Wirtschaftswoche.
+    """
+    categories = {
+        "Politik": {"https://www.wiwo.de/politik/"},
+        "Wirtschaft": {"https://www.wiwo.de/finanzen/", "https://www.wiwo.de/unternehmen/"},
+        "Gesellschaft": {"https://www.wiwo.de/erfolg/trends/", "https://www.wiwo.de/technologie/green/"},
+        "Technik": {"https://www.wiwo.de/technologie/"},
+        "IT": {"https://www.wiwo.de/unternehmen/it/", "https://www.wiwo.de/technologie/digitale-welt/"},
+        "Wissen": {"https://www.wiwo.de/unternehmen/energie/", "https://www.wiwo.de/technologie/umwelt/",
+                   "https://www.wiwo.de/technologie/forschung/"},
+        "Karriere": {"https://www.wiwo.de/erfolg/", "https://www.wiwo.de/erfolg/hochschule/"}
+    }
+
+    cat = ["Politik", "Wirtschaft", "Gesellschaft", "Technik", "IT", "Wissen", "Karriere"]
+    #selected_cat = ["Wirtschaft"]
+
+    selected_categories = []
+    all_categories = []
+
+    def __init__(self, cat_list=[], *args, **kwargs):
+        """
+        All categories are stored in a dictionary. Here this dictionary will be converted into a list of all relevant
+        URLs.
+
+        :param cat_list: A list of the categories that should be scraped.
+        :type cat_list: list
+
+        :param args:
+        :param kwargs:
+        """
+        super(WiwoSpider, self).__init__(*args, **kwargs)
+        for c in cat_list:
+            for url in self.categories[c]:
+                self.selected_categories.append(url)
+        for c in self.cat:
+            for url in self.categories[c]:
+                self.all_categories.append(url)
+
     name = 'Wiwo'
     allowed_domains = ['www.wiwo.de']
     start_urls = selected_categories
 
-    #Creates x-path expression to the subcategories based on the start url page
     def parse(self, response):
+        """
+        In this function we extract the links to the subcategories based on the start url page and follow each link
+        to the subcategories the x-path expression finds.
+        """
         link_selector = "//h2[contains(@class,'ressort')]/a/@href"
-        # for category in link_selector:
-        #    self.logger.info("parse: %s",response.url)
-        #    yield response.follow(category, self.parsecontent)
 
-        #Follows each link to subcategories the x-path expression finds
         if response.xpath(link_selector).get():
             for wiwo_index in response.xpath(link_selector).getall():
-                if not any(wiwo_index in s for s in cat):
-                    # self.logger.info('Parse function calles on %s', response.url)
-                    # self.logger.info('Parse %s', faz_index)
+                if not any(wiwo_index in s for s in self.all_categories):
                     yield response.follow(wiwo_index, self.parsecontent)
         else:
-            # self.logger.info("Else: %s", response.url)
             request = scrapy.Request(response.url, callback=self.parsecontent)
             yield request
 
-    #Creates x-path expression to each article of a subcateory and follows it
-    #Creates x-path expression to the next page of a subcategory and follows it
     def parsecontent(self, response):
+        """
+        This function is called after the parse function and we extract and follow the links of each article
+        using an x-path expression which loops over the several subcategories. In case the subcategory has more
+        than one page of articles, an x-path expression follows the link to the next page and extracts the
+        articles from there.
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+        :type response: dict
+        """
         link_selector = response.xpath('//a[contains(@class, "teaser__image-wrapper")]/@href').getall()
         next_page = response.xpath('//a[contains(@rel,"next")]/@href').get()
         if next_page:
@@ -73,30 +81,40 @@ class WiwoSpider(scrapy.Spider):
         for article in link_selector:
             yield response.follow(article, self.parsearticle)
 
-    #Parses article information
     def parsearticle(self, response):
+        """
+        This function collects all relevant article information to store in the database. All articles (except
+        picture galleries, in which we are not interested) contains an ld+json object in their source code. This
+        object contains the majority of data we are looking for (including date_published, date_modified, author,
+        publisher, images and keywords). For the images we only store the corresponding link. If there are several
+        authors, publishers, images or keywords we convert the given list into a string. The title is extracted directly
+        from the source code. The article body is combined of the several paragraphs extracted by a x-path expression. To
+        avoid losing information included in the text linked to another page we remove the HTML-tags and substitute them
+        with "" using a regular expression. The category is chosen falling back on the dictionary 'categories' and
+        for articles in subcategory not consistently following main category the longest link will be chosen.
+        The metadata will be written into a scrapy item element.
+        To reveal the payment status of the article we follow a x-path expression and scrape only the
+        articles, which are freely accessible. Some articles are divided into more than one page. If this is tha case
+        we follow the link to the button "Artikel auf einer Seite" and the whole content will be shown on one page,
+        which we scrape like one-page articles and the item element will be the end result.
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
+        and fed to the Spiders for processing
+        :type response: dict
+        """
         self.logger.info("url: %s", response.url)
 
-        #Connects Spider to Item Class
         items = CptItem()
 
-        #Creates x-path expression to JSON-object including metadata of the article
         metadata_selektor = response.xpath('//script[contains(@type, "ld+json")]/text()').get()
-        #Creates x-path expression to the information about the payment status of the article
         premium = response.xpath('//div[contains(@class, "c-metadata--premium")]').get()
-        #Creates x-path expression to the button to show a several page article on one page
         one_page = response.xpath('//a[contains(@data-command,"Paginierung-Artikel-auf-einer-Seite")]/@href').get()
 
-        #Follows x-path expression to show article on one page, if it is a multi-page article
         if one_page:
             self.logger.info("test: %s", one_page)
             yield response.follow(one_page, self.parsearticle)
         else:
-            #Checks whether article is premium
             if not premium:
-                #Loads JSON-object and extracts metadata
-                #(title, date_published, date_modified, authors, media, article text, keywords, category)
-                #If there is no entry sets variable to string e.g. "no date"
                 if metadata_selektor:
                     metadata = json.loads(metadata_selektor)
 
@@ -113,17 +131,9 @@ class WiwoSpider(scrapy.Spider):
                         date_modified = "no date"
 
                     try:
-                        description = metadata["description"]
-                    except:
-                        description = "no description"
-
-                    try:
                         authors = metadata["author"]
                     except:
                         author_str = "no author"
-                    # If authors field is a list converts it to string while adressing attribute 'name'
-                    #Creates empty string 'author_str' and iterates over list of authors
-                    #Adds each author to 'author_str'
                     else:
                         author_str = ""
                         if type(authors) is list:
@@ -178,51 +188,35 @@ class WiwoSpider(scrapy.Spider):
                                 else:
                                     keywords_str = keywords_str + ", " + keyword
 
-                    #Extracts body text of article through following x-path expression
-                    body = response.xpath('//div[contains(@class, "u-richtext")]/p').getall() #/text()
+                    body = response.xpath('//div[contains(@class, "u-richtext")]/p').getall()
                     body_str = ""
-                    #Combines several paragraphs 'p' to one article body 'body_str'
                     for p in body:
                         if not body_str:
                             body_str += p
                         else:
                             body_str = body_str + " " + p
-                    #Removes HTML-tags substituting the tags with "" using a regular expression
-                    #Avoids losing information included in text linked to another page
                     body_str = re.sub("<[^>]+?>", "", body_str)
 
-                    #Returns category of article falling back on dictionary 'categories'
-                    #Ensures category for articles in subcategory not consitently following main category is specified correctly
-                    #choosing longest link
                     temp_max = 0
-                    for key, values in categories.items():
+                    for key, values in self.categories.items():
                         for value in values:
                             if value in response.url and len(value)>temp_max:
                                 temp_max = len(value)
                                 category = key
                                 category = str(category)
 
-                    #Creates items using extracted metadata
                     items['title'] = title
                     items['author'] = author_str
-                    #Value is defined in pipeline
                     items['date_retrieved'] = "no date"
                     items['date_published'] = date_published
                     items['date_edited'] = date_modified
                     items['keywords'] = keywords_str
                     items['media'] = image_str
-                    #Value is set
                     items['language'] = "german"
                     items['url'] = response.url
                     items['article_text'] = body_str
                     items['category'] = category
-                    #Raw HTML is combined of HTMl-header and HTML-text
-                    items['html'] = str(response.headers) + response.text
-                    #Value is set
+                    #items['html'] = str(response.headers) + response.text
                     items['source'] = "Wirtschaftswoche"
 
-                    #Yields all items defined in 'items.py'
                     yield items
-
-
-                    #yield {response.url: title + " ;" + body_str}
