@@ -2,6 +2,7 @@
 import json
 import re
 import scrapy
+import psycopg2
 
 from time import *
 from ..items import CptItem
@@ -30,6 +31,9 @@ class HeiseSpider(scrapy.Spider):
 
     selected_categories = []
     all_categories = []
+    ducplicates_sql = """SELECT url FROM metadaten;"""
+
+    categories = ["Digital"]
 
     def __init__(self, cat_list=[], *args, **kwargs):
         """
@@ -47,6 +51,19 @@ class HeiseSpider(scrapy.Spider):
         for c in self.all_cat_list:
             for url in self.categories[c]:
                 self.all_categories.append(url)
+
+        self.cur.execute(self.ducplicates_sql)
+        for url in self.cur:
+            self.known_urls.append(url[0])
+        self.cur.close()
+
+        def create_connection(self):
+            """
+            Creates a connection to the predefined database.
+            """
+            self.conn = psycopg2.connect(host=self.hostname, user=self.username, password=self.password,
+                                         dbname=self.database)
+            self.cur = self.conn.cursor()
 
     name = 'heise'
     allowed_domains = ['www.heise.de']
@@ -130,7 +147,7 @@ class HeiseSpider(scrapy.Spider):
 
         items["title"] = title
         items["author"] = author
-        items["date_retrieved"] = date_retrieved
+        # items["date_retrieved"] = date_retrieved
         items["date_published"] = date_published
         items["date_edited"] = date_edited
         items["url"] = url
