@@ -88,3 +88,9 @@ ITEM_PIPELINES = {
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+SERVER_ADRESS = "localhost"
+SERVER_USERNAME = "postgres"
+SERVER_USERPASSWORD = "maybe"
+SERVER_DATABASE = "NewspaperCrawler"
+

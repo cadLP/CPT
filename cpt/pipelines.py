@@ -1,9 +1,10 @@
 import psycopg2
+from cpt import settings as cptsettings
 
-#hostname = "localhost"
-#username = "postgres"
-#password = "maybe"
-#database = "NewspaperCrawler"
+hostname = cptsettings.SERVER_ADRESS
+username = cptsettings.SERVER_USERNAME
+password = cptsettings.SERVER_USERPASSWORD
+database = cptsettings.SERVER_DATABASE
 
 
 class CptPipeline(object):

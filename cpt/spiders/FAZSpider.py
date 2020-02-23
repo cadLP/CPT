@@ -2,6 +2,7 @@
 import scrapy
 import json
 from cpt.items import CptItem
+from cpt import settings as cptssettings
 import psycopg2
 
 
@@ -9,6 +10,10 @@ class FazSpider(scrapy.Spider):
     """
     This class is the Spider for the crawler of the FAZ
     """
+    hostname = cptssettings.SERVER_ADRESS
+    username = cptssettings.SERVER_USERNAME
+    password = cptssettings.SERVER_USERPASSWORD
+    database = cptssettings.SERVER_DATABASE
 
     categories = {
         "Politik": {"https://www.faz.net/aktuell/politik", "https://www.faz.net/aktuell/brexit/"},
@@ -117,8 +122,8 @@ class FazSpider(scrapy.Spider):
 
                 next_page = response.xpath(next_page_selector).get()
                 self.logger.info('next_page %s', next_page)
-                #if next_page is not None:
-                #    yield response.follow(next_page, self.parse_index)
+                # if next_page is not None:
+                #     yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
         """
@@ -193,7 +198,7 @@ class FazSpider(scrapy.Spider):
                                     author_str = author_str + ", " + author["name"]
                         else:
                             author_str += authors["name"]
-
+                    category = "no category"
                     for key, values in self.categories.items():
                         for value in values:
                             if value in response.url:
@@ -209,8 +214,8 @@ class FazSpider(scrapy.Spider):
                     items["media"] = image_str
                     items["article_text"] = article_body
                     items["category"] = category
-                    items["raw_html"] = "dummyhtml"
-                    items["source"] = "FAZ"
+                    items["raw_html"] = response.text
+                    items["source"] = "faz.net"
 
                     if next_page:
                         yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": items})
@@ -236,7 +241,7 @@ class FazSpider(scrapy.Spider):
             "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()
 
         item["article_text"] = item["article_text"] + metadata_ld["articleBody"]
-        #item["html"] = item["html"] + response.body
+        item["raw_html"] = item["raw_html"] + response.text
 
         if next_page:
             yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": response.meta['item']})

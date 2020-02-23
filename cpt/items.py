@@ -10,10 +10,8 @@ import scrapy
 
 class CptItem(scrapy.Item):
     # define the fields for your item here like:
-    # name = scrapy.Field()
     title = scrapy.Field()
     author = scrapy.Field()
-    #date_retrieved = scrapy.Field()
     date_published = scrapy.Field()
     date_edited = scrapy.Field()
     url = scrapy.Field()
