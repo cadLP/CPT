@@ -1,9 +1,5 @@
 import psycopg2
 
-# hostname = "localhost"
-# username = "postgres"
-# password = "2522"
-# database = "NewspaperCrawler"
 
 class FazPipeline(object):
     """

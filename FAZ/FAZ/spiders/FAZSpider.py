@@ -108,19 +108,20 @@ class FazSpider(scrapy.Spider):
         selector_articles_reise = "//a[contains(@class, 'ContentLink') and contains(@href, '/reise/')]/@href"
         next_page_selector = '//li[contains(@class, "next-page")]/a/@href'
 
-        if response.url not in self.existing_urls:
-            if "reise" in response.url:
-                for faz_article_r in response.xpath(selector_articles_reise).getall():
+        if "reise" in response.url:
+            for faz_article_r in response.xpath(selector_articles_reise).getall():
+                if faz_article_r not in self.existing_urls:
                     yield response.follow(faz_article_r, self.parse_article)
-            else:
-                for faz_article in response.xpath(selector_articles).getall():
-                    if "blogs." not in faz_article:
+        else:
+            for faz_article in response.xpath(selector_articles).getall():
+                if "blogs." not in faz_article:
+                    if faz_article not in self.existing_urls:
                         yield response.follow(faz_article, self.parse_article)
 
-                next_page = response.xpath(next_page_selector).get()
-                self.logger.info('next_page %s', next_page)
-                #if next_page is not None:
-                #    yield response.follow(next_page, self.parse_index)
+            next_page = response.xpath(next_page_selector).get()
+            self.logger.info('next_page %s', next_page)
+            #if next_page is not None:
+            #    yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
         """
