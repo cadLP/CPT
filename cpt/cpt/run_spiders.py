@@ -10,6 +10,7 @@ from cpt.cpt.spiders.FazSpider import FazSpider
 configure_logging()
 runner = CrawlerRunner()
 
+
 @defer.inlineCallbacks
 def crawl():
     yield runner.crawl(HeiseSpider)

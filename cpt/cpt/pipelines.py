@@ -23,7 +23,7 @@ class CptPipeline(object):
     def process_item(self, item, spider):
         self.store_db_metadata(item)
         self.store_db_text(item)
-        #self.store_db_html(item)
+        # self.store_db_html(item)
         return item
 
     def store_db_metadata(self, item):

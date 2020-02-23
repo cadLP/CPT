@@ -71,7 +71,8 @@ class HeiseSpider(scrapy.Spider):
 
     def parse(self, response):
         """
-
+        The parse method processes the index pages of the chosen categories. Every link directing to an article will be
+        extracted and yielded for further processing.
         :param response:
         :return:
         """
