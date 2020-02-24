@@ -68,8 +68,8 @@ class SpiegelSpider(scrapy.Spider):
             if url not in self.existing_urls:
                 yield response.follow(url, self.parse_article)
 
-        # if next_page is not None:
-        #    yield response.follow(next_page, self.parse)
+        if next_page is not None:
+           yield response.follow(next_page, self.parse)
 
     def parse_article(self, response):
 

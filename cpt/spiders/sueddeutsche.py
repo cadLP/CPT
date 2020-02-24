@@ -107,7 +107,7 @@ class SueddeutscheSpider(scrapy.Spider):
         counter = response.meta["counter"]
         if response.xpath('//body[@class="szde-errorpage"]').get() is not None:
             return
-        counter += 0
+        counter += 1
         offset = str(counter*25)
         next_url = "https://www.sueddeutsche.de/overviewpage/additionalDepartmentTeasers?departmentId="+button_id+"&offset="+offset+"&size=25"
         urls = response.css('div.sz-teaserlist-element--separator-line').xpath('a/@href').getall()

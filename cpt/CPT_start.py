@@ -3,7 +3,6 @@ from cpt.tagging import CrawlerTagging
 from cpt.exporter import Export
 from cpt.viewer import Viewer
 
-
 spiders = []
 categories = []
 methods = []
@@ -11,6 +10,7 @@ allcategories = ["Sport", "Politik", "Wirtschaft", "Meinung", "Regional", "Kultu
                  "Wissen", "Digital", "Karriere", "Reisen", "Technik"]
 known_spiders = ["sueddeutsche", "faz", "wiwo", "heise", "spiegel"]
 allmethods = ["treetagger_pos", "spacy_ner", "spacy_pos"]
+
 
 def readspiders():
     """
@@ -240,11 +240,9 @@ def getTask():
         if eingabe == "view":
             view()
         if eingabe == "export":
-            # Todo
             export()
         if eingabe == "exit":
             break
-
 
 getTask()
 

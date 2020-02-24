@@ -121,8 +121,8 @@ class FazSpider(scrapy.Spider):
                         yield response.follow(faz_article, self.parse_article)
 
                 next_page = response.xpath(next_page_selector).get()
-                #if next_page is not None:
-                #    yield response.follow(next_page, self.parse_index)
+                if next_page is not None:
+                    yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
         """
