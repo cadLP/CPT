@@ -3,8 +3,8 @@
     :synopsis: Main script which implements user interaction and starts the crawling.
 """
 
-from cpt.spiders.SuedRunner import ScrapyCrawler
-from cpt.spiders.ScrapyProcess import ScrapyProcess
+from cpt.cpt.spiders.SuedRunner import ScrapyCrawler
+from cpt.cpt.spiders.ScrapyProcess import ScrapyProcess
 known_spiders = ["sueddeutsche", "faz", "wiwo", "spiegel", "heise"]
 spiders = []
 categories = []

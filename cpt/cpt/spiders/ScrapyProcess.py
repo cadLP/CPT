@@ -2,12 +2,12 @@ from twisted.internet import reactor, defer, error
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 import sys
-from cpt.spiders.sueddeutsche import SueddeutscheSpider
-from cpt.spiders.FAZSpider import FazSpider
-from cpt.spiders.Wiwo import WiwoSpider
+from cpt.cpt.spiders.sueddeutsche import SueddeutscheSpider
+from cpt.cpt.spiders.FazSpider import FazSpider
+from cpt.cpt.spiders.Wiwo import WiwoSpider
 
 from scrapy.settings import Settings
-from cpt import settings as cptssettings
+from cpt.cpt import settings as cptssettings
 from scrapy.crawler import CrawlerProcess
 from threading import Thread
 

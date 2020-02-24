@@ -12,7 +12,17 @@ Welcome to CPT's documentation!
 
 CPT Crawler main
 =================
-.. automodule::cpt.Cpt_crawler
+.. automodule:: cpt.Cpt_crawler
+   :members:
+
+CPT items
+==========
+.. autoclass:: cpt.items.CptItem
+   :members:
+
+CPT pipeline
+============
+.. autoclass:: cpt.pipelines.FazPipeline
    :members:
 
 CPT FAZ spider
