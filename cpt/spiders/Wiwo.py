@@ -4,17 +4,17 @@ import json
 from ..items import CptItem
 import re
 import psycopg2
-from cpt import settings as cptssettings
+from cpt import settings as cptsettings
 
 class WiwoSpider(scrapy.Spider):
     """
     This class creates the Spider for the crawler of the Wirtschaftswoche.
     """
 
-    hostname = cptssettings.SERVER_ADRESS
-    username = cptssettings.SERVER_USERNAME
-    password = cptssettings.SERVER_USERPASSWORD
-    database = cptssettings.SERVER_DATABASE
+    hostname = cptsettings.SERVER_ADRESS
+    username = cptsettings.SERVER_USERNAME
+    password = cptsettings.SERVER_USERPASSWORD
+    database = cptsettings.SERVER_DATABASE
     categories = {
         "Politik": {"https://www.wiwo.de/politik/"},
         "Wirtschaft": {"https://www.wiwo.de/finanzen/", "https://www.wiwo.de/unternehmen/"},
@@ -91,7 +91,7 @@ class WiwoSpider(scrapy.Spider):
         if next_page:
             yield response.follow(next_page, self.parsecontent)
         for article in link_selector:
-            if article not in self.existing_urls:
+            if "https://www.wiwo.de"+article not in self.existing_urls:
                 yield response.follow(article, self.parsearticle)
 
     def parsearticle(self, response):
@@ -114,7 +114,6 @@ class WiwoSpider(scrapy.Spider):
         and fed to the Spiders for processing
         :type response: dict
         """
-        self.logger.info("url: %s", response.url)
 
         items = CptItem()
 
@@ -123,8 +122,8 @@ class WiwoSpider(scrapy.Spider):
         one_page = response.xpath('//a[contains(@data-command,"Paginierung-Artikel-auf-einer-Seite")]/@href').get()
 
         if one_page:
-            self.logger.info("test: %s", one_page)
-            yield response.follow(one_page, self.parsearticle)
+            if "https://www.wiwo.de"+one_page not in self.existing_urls:
+                yield response.follow(one_page, self.parsearticle)
         else:
             if not premium:
                 if metadata_selektor:

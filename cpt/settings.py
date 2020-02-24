@@ -94,3 +94,4 @@ SERVER_USERNAME = "postgres"
 SERVER_USERPASSWORD = "maybe"
 SERVER_DATABASE = "NewspaperCrawler"
 
+LOG_LEVEL = "INFO"

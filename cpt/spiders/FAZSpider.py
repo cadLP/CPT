@@ -142,8 +142,12 @@ class FazSpider(scrapy.Spider):
         """
 
         metadata = json.loads(response.xpath('//div/@data-digital-data').get())
-        metadata_ld = json.loads(
+
+        try:
+            metadata_ld = json.loads(
             response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())
+        except:
+            metadata_ld = None
         keywords = response.xpath('//meta[contains(@name, "key")]/@content').get()
         next_page = response.xpath(
             "//li[contains(@class, 'next-page')]/a[contains(@class, 'Paginator_Link')]/@href").get()

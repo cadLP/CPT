@@ -18,7 +18,7 @@ class CptPipeline(object):
         """
         Creates a connection to the predefined database.
         """
-        self.conn = psycopg2.connect(host="localhost", user="postgres", password="maybe", dbname="NewspaperCrawler")
+        self.conn = psycopg2.connect(host=hostname, user=username, password=password, dbname=database)
         self.cur = self.conn.cursor()
 
     def process_item(self, item, spider):
