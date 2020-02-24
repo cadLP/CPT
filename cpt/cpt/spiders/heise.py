@@ -45,9 +45,13 @@ class HeiseSpider(scrapy.Spider):
         """
             All categories are stored in a dictionary. Here this dictionary will be converted into a list of all the relevant
             URLs.
+
             :param cat_list: A list of the categories that should be scraped.
+
             :type cat_list: list
+
             :param args:
+
             :param kwargs:
         """
         super(HeiseSpider, self).__init__(*args, **kwargs)
@@ -79,7 +83,9 @@ class HeiseSpider(scrapy.Spider):
         """
         The parse method processes the index pages of the chosen categories. Every link directing to an article will be
         extracted and yielded for further processing.
-        :param response:
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+
         :return:
         """
         article_xpath = "//a[@class='a-article-teaser__link']/@href"
@@ -101,7 +107,9 @@ class HeiseSpider(scrapy.Spider):
         """
         This method extracts the plain text and mete information of the article.
         It uses xpath expressions to get the information from the data which is stored in the response object.
-        :param response:
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+
         :return:
         """
         items = CptItem()

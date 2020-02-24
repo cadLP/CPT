@@ -37,9 +37,13 @@ class WiwoSpider(scrapy.Spider):
         """
         All categories are stored in a dictionary. Here this dictionary will be converted into a list of all relevant
         URLs.
+
         :param cat_list: A list of the categories that should be scraped.
+
         :type cat_list: list
+
         :param args:
+
         :param kwargs:
         """
         super(WiwoSpider, self).__init__(*args, **kwargs)
@@ -82,7 +86,9 @@ class WiwoSpider(scrapy.Spider):
         using an x-path expression which loops over the several subcategories. In case the subcategory has more
         than one page of articles, an x-path expression follows the link to the next page and extracts the
         articles from there.
+
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+
         :type response: dict
         """
         link_selector = response.xpath('//a[contains(@class, "teaser__image-wrapper")]/@href').getall()
@@ -108,8 +114,9 @@ class WiwoSpider(scrapy.Spider):
         articles, which are freely accessible. Some articles are divided into more than one page. If this is tha case
         we follow the link to the button "Artikel auf einer Seite" and the whole content will be shown on one page,
         which we scrape like one-page articles and the item element will be the end result.
-        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
-        and fed to the Spiders for processing
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+
         :type response: dict
         """
         self.logger.info("url: %s", response.url)

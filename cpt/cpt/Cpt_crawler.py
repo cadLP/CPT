@@ -42,6 +42,7 @@ def readspiders():
 def readcategories():
     """
     This method reads the categories that are to be scraped from the console while allowing for adjustments.
+
     :return:
     """
     eingabe = input()
@@ -70,6 +71,7 @@ def readcategories():
 def startScrape():
     """
     This method reads first Spiders and second Categories from the console and starts the spiders.
+
     :return:
     """
     print("Please enter Spiders to use with Spaces inbetween (for all, type \"all\"):\n")
@@ -101,6 +103,7 @@ def startScrape():
 def startTag():
     """
     This method reads which text ist to be text and which methods is to be used from the console.
+
     :return:
     """
     pass
@@ -109,6 +112,7 @@ def startTag():
 def getTask():
     """
     This method assigns the task to be completed by the System depending on user input.
+
     :return:
     """
 

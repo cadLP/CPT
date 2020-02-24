@@ -13,7 +13,6 @@ Welcome to CPT's documentation!
 CPT Crawler main
 =================
 .. automodule:: cpt.Cpt_crawler
-   :members:
 
 CPT items
 ==========

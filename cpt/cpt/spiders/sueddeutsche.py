@@ -54,9 +54,13 @@ class SueddeutscheSpider(scrapy.Spider):
         relevant category URLs.
         A list of all existing URLs in the database will be created. This list will be compared to the parsed
         article urls.
+
         :param cat_list: A list of the categories that should be scraped.
+
         :type cat_list: list
+
         :param args:
+
         :param kwargs:
         """
         super(SueddeutscheSpider, self).__init__(*args, **kwargs)
@@ -73,6 +77,7 @@ class SueddeutscheSpider(scrapy.Spider):
     def create_connection(self):
         """
         Creates a connection to the predefined database.
+
         :return:
         """
         self.conn = psycopg2.connect(host=self.hostname, user=self.username, password=self.password,
@@ -82,6 +87,7 @@ class SueddeutscheSpider(scrapy.Spider):
     def start_requests(self):
         """
         Starts crawling from the given start urls.
+
         :return:
         """
 
@@ -95,7 +101,9 @@ class SueddeutscheSpider(scrapy.Spider):
         """
         The parse method processes the main category pages, like "Sport" and acquires the id of the "load more articles"
         Button, which is then passed to the parselist method.
+
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+
         :type response: dict
         """
 
@@ -112,7 +120,9 @@ class SueddeutscheSpider(scrapy.Spider):
         """
         The parselist method processes and generates the pages otherwise dynamically loaded via javascript and passes any
         articles it finds to the parsearticle method.
+
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+
         :type response: dict
         """
         button_id = response.meta["button"]
@@ -143,8 +153,9 @@ class SueddeutscheSpider(scrapy.Spider):
         the the item format defined in items.py. Most of the information is being read from the "ld+json" which
         ist attached to all articles, the article text itself is being stiched together from different hmtl elements
         via xpath. Paid articles are sorted out in the first step.
-        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
-        and fed to the Spiders for processing
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
+
         :type response: dict
         """
         data = json.loads(response.xpath("//head/script[@type='application/ld+json']/text()").get())

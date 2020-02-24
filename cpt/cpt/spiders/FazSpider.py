@@ -49,9 +49,13 @@ class FazSpider(scrapy.Spider):
         """
         All categories are stored in a dictionary. Here this dictionary will be converted into a list of all the relevant
         URLs.
+
         :param cat_list: A list of the categories that should be scraped.
+
         :type cat_list: list
+
         :param args:
+
         :param kwargs:
         """
 
@@ -72,6 +76,7 @@ class FazSpider(scrapy.Spider):
         consisted of subcategories, like "Meinung". So in this instance the links are being followed using the request method.
         For the other categories we loop through the results using a XPath Selector and follow these links.
         In both cases the the request uses the method parse_index as a callback.
+
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
         """
         selector_subcategories = "//div[contains(@class, 'Articles')]//a[contains(@class, 'is-link') and starts-with(@href, '/aktuell')]/@href"
@@ -93,6 +98,7 @@ class FazSpider(scrapy.Spider):
         In addition the function looks for the link to the next page. This link yields a new request to the next page,
         registering itself as callback to handle the data extraction for the next page and to keep the crawling going
         through all the pages.
+
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
         and fed to the Spiders for processing
         """
@@ -128,8 +134,8 @@ class FazSpider(scrapy.Spider):
         next page and yields a new request to it, registering parse_multiple_page_article as callback. In the new request
         the already scraped item will be handed over using the method meta.
         If there is only one page the item element will be the end result.
-        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
-        and fed to the Spiders for processing
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
         """
 
         metadata = json.loads(response.xpath('//div/@data-digital-data').get())
@@ -220,8 +226,8 @@ class FazSpider(scrapy.Spider):
         for the link to the next page. This link yields a new request to the next page, registering itself as callback
         and handing over the current item.
         If there are no more next pages the item element will be the endresult.
-        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
-        and fed to the Spiders for processing
+
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
         """
 
         item = response.meta['item']

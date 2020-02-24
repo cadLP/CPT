@@ -42,8 +42,7 @@ class SpiegelSpider(scrapy.Spider):
         The variable "Test" containing a Boolean value limits the spider to crawling just the very first pages of the
         start_urls when set to True, but we get crawled data in till next pages, when set to False.
 
-        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
-        and fed to the Spiders for processing
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
         :return:
         """
         next_page = response.xpath(
@@ -72,8 +71,7 @@ class SpiegelSpider(scrapy.Spider):
         will be selected using XPATH. The metadata will be written into a scrapy item element. The item element will be
         the end result.
 
-        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
-        and fed to the Spiders for processing
+        :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
         :return:
         """
 
