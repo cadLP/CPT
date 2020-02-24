@@ -19,7 +19,7 @@ sys.setrecursionlimit(1500)
 
 project = 'CPT'
 copyright = '2020, Tristan Dietz'
-author = 'Tristan Dietz'
+author = 'T. Dietz, D. Nkoundjo, J. Schröder, K. Suhr, L. Wepner'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
@@ -81,7 +81,7 @@ htmlhelp_basename = 'CPTdoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
@@ -95,7 +95,7 @@ latex_elements = {
     #
     'figure_align': 'htbp',
 }
-
+"""
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
@@ -103,7 +103,7 @@ latex_documents = [
     (master_doc, 'CPT.tex', 'CPT documentation',
      'Tristan Dietz', 'manual'),
 ]
-
+"""
 
 # -- Options for manual page output ------------------------------------------
 
@@ -113,44 +113,3 @@ man_pages = [
     (master_doc, 'cptdocumentaion', 'CPT documentation',
      [author], 1)
 ]
-
-
-# -- Options for Texinfo output ----------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-    (master_doc, 'SimpleTeacherDataAPI', 'Simple Teacher Data API Documentation',
-     author, 'SimpleTeacherDataAPI', 'One line description of project.',
-     'Miscellaneous'),
-]
-
-
-# -- Options for Epub output -------------------------------------------------
-
-# Bibliographic Dublin Core info.
-epub_title = project
-epub_author = author
-epub_publisher = author
-epub_copyright = copyright
-
-# The unique identifier of the text. This can be a ISBN number
-# or the project homepage.
-#
-# epub_identifier = ''
-
-# A unique identification for the text.
-#
-# epub_uid = ''
-
-# A list of files that should not be packed into the epub file.
-epub_exclude_files = ['search.html']
-
-
-# -- Extension configuration -------------------------------------------------
-
-# -- Options for intersphinx extension ---------------------------------------
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}

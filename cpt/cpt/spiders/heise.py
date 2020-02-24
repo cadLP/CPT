@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+.. module:: heise
+    :synopsis: Spider for extracting data from heise.de
+
+.. moduleauthor:: Tristan Dietz <s5trdiet@uni-trier.de>
+"""
 import json
 import re
 import scrapy
@@ -31,18 +37,18 @@ class HeiseSpider(scrapy.Spider):
 
     selected_categories = []
     all_categories = []
-    ducplicates_sql = """SELECT url FROM metadaten;"""
+    duplicates_sql = """SELECT url FROM metadaten;"""
 
     categories = ["Digital"]
 
     def __init__(self, cat_list=[], *args, **kwargs):
         """
-        All categories are stored in a dictionary. Here this dictionary will be converted into a list of all the relevant
-        URLs.
-        :param cat_list: A list of the categories that should be scraped.
-        :type cat_list: list
-        :param args:
-        :param kwargs:
+            All categories are stored in a dictionary. Here this dictionary will be converted into a list of all the relevant
+            URLs.
+            :param cat_list: A list of the categories that should be scraped.
+            :type cat_list: list
+            :param args:
+            :param kwargs:
         """
         super(HeiseSpider, self).__init__(*args, **kwargs)
         for c in cat_list:
@@ -52,18 +58,18 @@ class HeiseSpider(scrapy.Spider):
             for url in self.categories[c]:
                 self.all_categories.append(url)
 
-        self.cur.execute(self.ducplicates_sql)
+        self.cur.execute(self.duplicates_sql)
         for url in self.cur:
             self.known_urls.append(url[0])
         self.cur.close()
 
-        def create_connection(self):
-            """
-            Creates a connection to the predefined database.
-            """
-            self.conn = psycopg2.connect(host=self.hostname, user=self.username, password=self.password,
-                                         dbname=self.database)
-            self.cur = self.conn.cursor()
+    def create_connection(self):
+        """
+        Creates a connection to the predefined database.
+        """
+        self.conn = psycopg2.connect(host=self.hostname, user=self.username, password=self.password,
+                                     dbname=self.database)
+        self.cur = self.conn.cursor()
 
     name = 'heise'
     allowed_domains = ['www.heise.de']
@@ -93,7 +99,8 @@ class HeiseSpider(scrapy.Spider):
 
     def parse_article(self, response):
         """
-
+        This method extracts the plain text and mete information of the article.
+        It uses xpath expressions to get the information from the data which is stored in the response object.
         :param response:
         :return:
         """

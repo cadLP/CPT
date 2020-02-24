@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+.. module:: FazSpider
+    :synopsis: Spider for extracting data from faz.de
+
+.. moduleauthor:: Katharina Suhr <s2kasuhr@uni-trier.de>
+"""
 import scrapy
 import json
-from cpt.cpt.items import CptItem
+# from cpt.cpt.items import CptItem
 from twisted.internet import reactor, defer
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
@@ -32,8 +38,9 @@ class FazSpider(scrapy.Spider):
         "Karriere": {"https://www.faz.net/aktuell/karriere-hochschule/"}
     }
 
-    all_cat_list = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik",
-           "Meinung", "Wissen", "Regional", "Karriere"]
+    all_cat_list = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital",
+                    "Technik",
+                    "Meinung", "Wissen", "Regional", "Karriere"]
 
     selected_categories = []
     all_categories = []
@@ -66,7 +73,6 @@ class FazSpider(scrapy.Spider):
         For the other categories we loop through the results using a XPath Selector and follow these links.
         In both cases the the request uses the method parse_index as a callback.
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader) and fed to the Spiders for processing
-        :type response: dict
         """
         selector_subcategories = "//div[contains(@class, 'Articles')]//a[contains(@class, 'is-link') and starts-with(@href, '/aktuell')]/@href"
 
@@ -89,7 +95,6 @@ class FazSpider(scrapy.Spider):
         through all the pages.
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
         and fed to the Spiders for processing
-        :type response: dict
         """
 
         selector_articles = '//div[contains(@class, "ctn-List")]//a[contains(@class, "ContentLink")]/@href'
@@ -109,7 +114,7 @@ class FazSpider(scrapy.Spider):
 
             next_page = response.xpath(next_page_selector).get()
             self.logger.info('next_page %s', next_page)
-            #if next_page is not None:
+            # if next_page is not None:
             #    yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
@@ -125,7 +130,6 @@ class FazSpider(scrapy.Spider):
         If there is only one page the item element will be the end result.
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
         and fed to the Spiders for processing
-        :type response: dict
         """
 
         metadata = json.loads(response.xpath('//div/@data-digital-data').get())
@@ -218,7 +222,6 @@ class FazSpider(scrapy.Spider):
         If there are no more next pages the item element will be the endresult.
         :param response: A Response object represents an HTTP response, which is usually downloaded (by the Downloader)
         and fed to the Spiders for processing
-        :type response: dict
         """
 
         item = response.meta['item']
@@ -234,21 +237,3 @@ class FazSpider(scrapy.Spider):
             yield response.follow(next_page, self.parse_multiple_page_article, meta={"item": response.meta['item']})
         else:
             yield item
-
-
-"""
-configure_logging()
-runner = CrawlerRunner()
-allcategories = ["Politik", "Wirtschaft", "Finanzen", "Sport", "Kultur", "Gesellschaft", "Reisen", "Digital", "Technik",
-                "Meinung", "Wissen", "Regional", "Karriere"]
-testcategories = ["Politik", "Meinung"]
-@defer.inlineCallbacks
-def crawl():
-
-    #yield runner.crawl(SueddeutscheSpider(categories=testcategories))
-    yield runner.crawl(FazSpider(cat_list=testcategories))
-    reactor.stop()
-
-crawl()
-reactor.run()
-"""

@@ -10,44 +10,32 @@ Welcome to CPT's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-CPT main
-============
-.. automodule:: cpt.run_spiders
+CPT Crawler main
+=================
+.. automodule::cpt.Cpt_crawler
    :members:
 
-CPT pipeline
-=============
-.. automodule:: cpt.pipelines
-   :members:
-
-CPT database
-=============
-.. automodule:: cpt.database
-   :members:
-
-CPT spiders
-=============
+CPT FAZ spider
+===============
 .. automodule:: cpt.spiders.FazSpider
    :members:
 
-CPT spiders
-============
+CPT  heise online spider
+=========================
 .. automodule:: cpt.spiders.heise
-   :memebers:
+   :members:
 
-CPT spiders
-============
+CPT Spiegel spider
+====================
+.. automodule:: cpt.spiders.spiegel_spider
+   :members:
+
+CPT Sueddeutsche spider
+========================
 .. automodule:: cpt.spiders.sueddeutsche
    :members:
 
-CPT spiders
-============
+CPT Wirtschaftswoche spider
+============================
 .. automodule:: cpt.spiders.Wiwo
    :members:
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
