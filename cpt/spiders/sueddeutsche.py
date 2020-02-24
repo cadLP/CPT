@@ -136,6 +136,7 @@ class SueddeutscheSpider(scrapy.Spider):
         and fed to the Spiders for processing
         :type response: dict
         """
+
         data = json.loads(response.xpath("//head/script[@type='application/ld+json']/text()").get())
         paiddata = response.xpath("//head/script[@type='text/javascript']/text()").get()[13:-1]
         try:
@@ -144,7 +145,7 @@ class SueddeutscheSpider(scrapy.Spider):
             paid = "paid"
         if paid == "paid":
             return
-
+        self.logger.info("Scraping article: %s", response.url)
         text_path = "//body/div[@id='sueddeutsche']/div/main/div/article/div[3]"
         texts = response.xpath(text_path+"/p/text() | "+text_path+"/p/a/text() | "+text_path+"/h4/text() | "+text_path+"/h3/text()").getall()
 

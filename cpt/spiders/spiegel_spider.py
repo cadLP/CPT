@@ -91,6 +91,7 @@ class SpiegelSpider(scrapy.Spider):
 
         if not premium:
             if metadata_selektor:
+                self.logger.info("Scraping article: %s", response.url)
                 meta = metadata_selektor[0]
 
                 try:

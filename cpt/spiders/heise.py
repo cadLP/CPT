@@ -95,10 +95,12 @@ class HeiseSpider(scrapy.Spider):
 
     def parse_article(self, response):
         """
-
+        This method extracts the plain text and mete information of the article.
+        It uses xpath expressions to get the information from the data which is stored in the response object.
         :param response:
         :return:
         """
+        self.logger.info("Scraping article: %s", response.url)
         items = CptItem()
 
         try:

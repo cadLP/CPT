@@ -126,6 +126,7 @@ class WiwoSpider(scrapy.Spider):
                 yield response.follow(one_page, self.parsearticle)
         else:
             if not premium:
+                self.logger.info("Scraping article: %s", response.url)
                 if metadata_selektor:
                     metadata = json.loads(metadata_selektor)
 

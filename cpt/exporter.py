@@ -5,6 +5,9 @@ import pprint
 
 
 class Export:
+    """
+    This class is used to export the database entries o files in different ways.
+    """
     hostname = cptsettings.SERVER_ADRESS
     username = cptsettings.SERVER_USERNAME
     password = cptsettings.SERVER_USERPASSWORD
@@ -31,7 +34,12 @@ class Export:
 
     def get_json(self, filename, source=[], categories=[]):
         """
-        Getting all the scraped newspaper articles from the database.
+        This methods exports all database entries depending on selected sources and categories
+        to a filename.json.
+        :param filename:
+        :param source:
+        :param categories:
+        :return:
         """
 
         select_spiders_sql = ""
@@ -67,7 +75,9 @@ class Export:
 
     def get_xml(self, filename):
         """
-        Getting all the scraped newspaper articles from the database.
+        This method exports the entire database to a filename.xml.
+        :param filename:
+        :return:
         """
         SQL = "SELECT database_to_xml(true, true, 'n');"
 
@@ -77,6 +87,13 @@ class Export:
                 f.write(c[0])
 
     def get_sql_json(self, sql, filename):
+        """
+        This method exports the result of a sql query to a filename.json.
+        :param sql:
+        :param filename:
+        :return:
+        """
+
         sql_row_json = """SELECT row_to_json(row) FROM ("""+sql+""") row;"""
         self.cur.execute(sql_row_json)
 

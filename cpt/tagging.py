@@ -47,7 +47,6 @@ class CrawlerTagging:
     def get_texts(self):
         """
         Getting all the scraped newspaper articles from the database.
-
         """
         self.cur.execute("""SELECT * FROM text;""")
         self.results = self.cur.fetchall()
@@ -58,16 +57,17 @@ class CrawlerTagging:
         """
         self.cur.execute("""INSERT INTO method (description, id) VALUES ('TreeTagger_POS', '1') ON CONFLICT DO NOTHING;""")
         self.conn.commit()
-        print("Starting Treetagger POS...")
         tagger = treetaggerwrapper.TreeTagger(TAGLANG='de', TAGDIR='Treetagger')
 
         for a, b in self.results:
-            tags = tagger.tag_text(a)
-            sql = """INSERT INTO pos (pos_tags, method_id, metadaten_id) VALUES (%s, '1', %s);"""
-            data = (tags, b)
-            self.cur.execute(sql, data)
-            self.conn.commit()
-        print("TreeTagger_POS finished successfully.")
+            sql = """SELECT * FROM pos WHERE method_id='1' AND metadaten_id="""+str(b)+""";"""
+            self.cur.execute(sql)
+            if not self.cur.fetchone():
+                tags = tagger.tag_text(a)
+                sql = """INSERT INTO pos (pos_tags, method_id, metadaten_id) VALUES (%s, '1', %s);"""
+                data = (tags, b)
+                self.cur.execute(sql, data)
+                self.conn.commit()
 
     def spacy_pos(self):
         """
@@ -75,17 +75,21 @@ class CrawlerTagging:
         """
         self.cur.execute("""INSERT INTO method (description, id) VALUES ('Spacy_POS', '2') ON CONFLICT DO NOTHING;""")
         self.conn.commit()
-        print("Starting Spacy POS...")
+
         nlp = de_core_news_sm.load()
-
+        print("Starting Spacy_POS...")
         for a, b in self.results:
-            doc = nlp(a)
-            tags = ' '.join('{word}/{tag}'.format(word=t.orth_, tag=t.tag_) for t in doc)
+            sql = """SELECT * FROM pos WHERE method_id='2' AND metadaten_id="""+str(b)+""";"""
+            self.cur.execute(sql)
+            if not self.cur.fetchone():
+                doc = nlp(a)
+                tags = ' '.join('{word}/{tag}'.format(word=t.orth_, tag=t.tag_) for t in doc)
+                sql = """INSERT INTO pos (pos_tags, method_id, metadaten_id) VALUES (%s, '2', %s)"""
+                data = (tags, b)
+                self.cur.execute(sql, data)
+                self.conn.commit()
+        print("Spacy_POS complete.")
 
-            sql = """INSERT INTO pos (pos_tags, method_id, metadaten_id) VALUES (%s, '2', %s)"""
-            data = (tags, b)
-            self.cur.execute(sql, data)
-            self.conn.commit()
 
     def spacy_ner(self):
         """
@@ -93,22 +97,21 @@ class CrawlerTagging:
         """
         self.cur.execute("""INSERT INTO method (description, id) VALUES ('Spacy_NER', '3') ON CONFLICT DO NOTHING;""")
         self.conn.commit()
-
+        print("Starting Spacy_NER...")
         nlp = de_core_news_sm.load()
-        print("Starting Spacy NER...")
+
         for a, b in self.results:
-            doc = nlp(a)
+            sql = """SELECT * FROM ner WHERE method_id='3' AND metadaten_id="""+str(b)+""";"""
+            self.cur.execute(sql)
+            if not self.cur.fetchone():
+                print("Tagging article " + str(b))
+                doc = nlp(a)
+                tags = []
+                for ent in doc.ents:
+                    tags.append(ent.text + '/' + ent.label_)
 
-            tags = []
-
-            for ent in doc.ents:
-                tags.append(ent.text + '/' + ent.label_)
-
-            sql = """INSERT INTO ner (ner_tags, method_id, metadaten_id) VALUES (%s, '3', %s)"""
-            data = (tags, b)
-            self.cur.execute(sql, data)
-            self.conn.commit()
-
-
-# TreeTagger, Spacy POS, Spacy NER
-#CrawlerTagging(tagging_method=["Spacy POS"])
+                sql = """INSERT INTO ner (ner_tags, method_id, metadaten_id) VALUES (%s, '3', %s)"""
+                data = (tags, b)
+                self.cur.execute(sql, data)
+                self.conn.commit()
+        print("Spacy_NER complete.")

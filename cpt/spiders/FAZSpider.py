@@ -121,9 +121,8 @@ class FazSpider(scrapy.Spider):
                         yield response.follow(faz_article, self.parse_article)
 
                 next_page = response.xpath(next_page_selector).get()
-                self.logger.info('next_page %s', next_page)
-                # if next_page is not None:
-                #     yield response.follow(next_page, self.parse_index)
+                #if next_page is not None:
+                #    yield response.follow(next_page, self.parse_index)
 
     def parse_article(self, response):
         """
@@ -156,6 +155,7 @@ class FazSpider(scrapy.Spider):
 
         if metadata_ld:
             if 'Bezahlartikel' not in metadata["article"]["type"]:
+                self.logger.info("Scraping article: %s", response.url)
                 try:
                     article_body = metadata_ld["articleBody"]
                 except:
@@ -237,7 +237,6 @@ class FazSpider(scrapy.Spider):
         and fed to the Spiders for processing
         :type response: dict
         """
-
         item = response.meta['item']
         metadata_ld = json.loads(
             response.xpath('//div[contains(@class, "Artikel")]//script[contains(@type, "ld+json")]/text()').get())

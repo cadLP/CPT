@@ -10,7 +10,7 @@ methods = []
 allcategories = ["Sport", "Politik", "Wirtschaft", "Meinung", "Regional", "Kultur", "Gesellschaft",
                  "Wissen", "Digital", "Karriere", "Reisen", "Technik"]
 known_spiders = ["sueddeutsche", "faz", "wiwo", "heise", "spiegel"]
-allmethods = ["treetagger", "spacy_ner", "spacy_pos"]
+allmethods = ["treetagger_pos", "spacy_ner", "spacy_pos"]
 
 def readspiders():
     """
@@ -159,7 +159,7 @@ def startTag():
         print("No methods were selected, restarting")
         methods.clear()
         return
-
+    print("Starting Tagging with :" + str(methods))
     CrawlerTagging(tagging_method=methods)
     methods.clear()
 
