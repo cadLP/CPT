@@ -36,16 +36,30 @@ class Export:
         self.conn.set_client_encoding('UTF8')
         self.cur = self.conn.cursor()
 
-    def get_json(self, filename):
+    def get_json(self, filename, source=[], categories=[]):
         """
         Getting all the scraped newspaper articles from the database.
         """
+        #spiders = ["sueddeutsche", "faz", "wiwo", "spiegel", "heise"]
+        #categories = ["Sport", "Politik", "Wirtschaft", "Meinung", "Regional", "Kultur", "Gesellschaft",
+                      #"Wissen", "Digital", "Karriere", "Reisen", "Technik"]
 
+        select_spiders_sql = ""
+        for i in source:
+            if i == "faz":
+                select_spiders_sql += "SOURCE='" + i + ".net' OR "
+            else:
+                select_spiders_sql += "SOURCE='" + i + ".de' OR "
 
+        select_cat_sql = ""
+        for i in categories:
+            select_cat_sql += "CATEGORY='" + i + "' OR "
+
+        selected_sql = "WHERE (" + select_spiders_sql[:-4] + ") AND (" + select_cat_sql[:-4] + ")"
 
         SQL = """SELECT row_to_json(row)
                     FROM
-                     (SELECT metadaten.*, text.article_text, raw_html.html, pos.pos_tags, method_pos.description as 
+                     (SELECT metadaten.*, text.article_text, pos.pos_tags, method_pos.description as 
                      tagging_method_pos, ner.ner_tags, method_ner.description as tagging_method_pos
                     FROM metadaten
                     LEFT JOIN text ON text.metadaten_id=metadaten.id
@@ -53,12 +67,7 @@ class Export:
                     LEFT JOIN pos ON metadaten.id=pos.metadaten_id 
                     LEFT JOIN ner ON metadaten.id=ner.metadaten_id
                     LEFT JOIN method method_pos ON pos.method_id=method_pos.id
-                    LEFT JOIN method method_ner ON ner.method_id=method_ner.id
-                    ) row;"""
-
-        known_spiders = ["sueddeutsche", "faz", "wiwo", "spiegel", "heise"]
-        allcategories = ["Sport", "Politik", "Wirtschaft", "Meinung", "Regional", "Kultur", "Gesellschaft",
-                         "Wissen", "Digital", "Karriere", "Reisen", "Technik"]
+                    LEFT JOIN method method_ner ON ner.method_id=method_ner.id """ + selected_sql + """) row;"""
 
         self.cur.execute(SQL)
         result = self.cur.fetchall()
@@ -88,4 +97,6 @@ class Export:
 
 
 export = Export()
-export.get_sql_json(sql="SELECT * FROM metadaten", filename="export")
+export.get_json(filename="export", source=["sueddeutsche", "faz", "wiwo", "spiegel", "heise"], categories=["Sport",
+                "Politik", "Wirtschaft", "Meinung", "Regional", "Kultur", "Gesellschaft", "Wissen", "Digital",
+                "Karriere", "Reisen", "Technik"])
