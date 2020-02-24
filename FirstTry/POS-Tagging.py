@@ -69,11 +69,14 @@ class CrawlerTagging:
         tagger = treetaggerwrapper.TreeTagger(TAGLANG='de', TAGDIR='../Treetagger')
 
         for a, b in self.results:
-            tags = tagger.tag_text(a)
-            sql = """INSERT INTO pos (pos_tags, method_id, metadaten_id) VALUES (%s, '1', %s);"""
-            data = (tags, b)
-            self.cur.execute(sql, data)
-            self.conn.commit()
+            sql="""SELECT * FROM pos WHERE method_id='1' AND metadaten_id='"""+str(b)+"""';"""
+            self.cur.execute(sql)
+            if self.cur.fetchall() is None:
+                tags = tagger.tag_text(a)
+                sql = """INSERT INTO pos (pos_tags, method_id, metadaten_id) VALUES (%s, '1', %s);"""
+                data = (tags, b)
+                self.cur.execute(sql, data)
+                self.conn.commit()
 
     def spacy_pos(self):
         """
@@ -85,13 +88,16 @@ class CrawlerTagging:
         nlp = de_core_news_sm.load()
 
         for a, b in self.results:
-            doc = nlp(a)
-            tags = ' '.join('{word}/{tag}'.format(word=t.orth_, tag=t.tag_) for t in doc)
-
-            sql = """INSERT INTO pos (pos_tags, method_id, metadaten_id) VALUES (%s, '2', %s)"""
-            data = (tags, b)
-            self.cur.execute(sql, data)
-            self.conn.commit()
+            sql = """SELECT * FROM pos WHERE method_id='2' AND metadaten_id='""" + str(
+                b) + """';"""
+            self.cur.execute(sql)
+            if self.cur.fetchall() is None:
+                doc = nlp(a)
+                tags = ' '.join('{word}/{tag}'.format(word=t.orth_, tag=t.tag_) for t in doc)
+                sql = """INSERT INTO pos (pos_tags, method_id, metadaten_id) VALUES (%s, '2', %s)"""
+                data = (tags, b)
+                self.cur.execute(sql, data)
+                self.conn.commit()
 
     def spacy_ner(self):
         """
@@ -103,17 +109,19 @@ class CrawlerTagging:
         nlp = de_core_news_sm.load()
 
         for a, b in self.results:
-            doc = nlp(a)
+            sql = """SELECT * FROM pos WHERE method_id='3' AND metadaten_id='""" + str(
+                b) + """';"""
+            self.cur.execute(sql)
+            if self.cur.fetchall() is None:
+                doc = nlp(a)
+                tags = []
+                for ent in doc.ents:
+                    tags.append(ent.text + '/' + ent.label_)
 
-            tags = []
-
-            for ent in doc.ents:
-                tags.append(ent.text + '/' + ent.label_)
-
-            sql = """INSERT INTO ner (ner_tags, method_id, metadaten_id) VALUES (%s, '3', %s)"""
-            data = (tags, b)
-            self.cur.execute(sql, data)
-            self.conn.commit()
+                sql = """INSERT INTO ner (ner_tags, method_id, metadaten_id) VALUES (%s, '3', %s)"""
+                data = (tags, b)
+                self.cur.execute(sql, data)
+                self.conn.commit()
 
 # TreeTagger, Spacy POS, Spacy NER
 CrawlerTagging(["TreeTagger", "Spacy POS"])
