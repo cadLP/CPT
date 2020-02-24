@@ -25,10 +25,8 @@ class View:
 
         """
         self.cur.execute(self.sql)
-        result = self.cur.fetchall()
+        [print(r) for r in self.cur]
 
-        for r in result:
-            print(r)
 
 
 View("""SELECT * FROM metadaten""")

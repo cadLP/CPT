@@ -27,8 +27,6 @@ class Export:
         """
         # super(Export, self).__init__(*args, **kwargs)
         self.create_connection()
-        self.get_json()
-        self.get_xml()
 
     def create_connection(self):
         """
@@ -38,28 +36,37 @@ class Export:
         self.conn.set_client_encoding('UTF8')
         self.cur = self.conn.cursor()
 
-    def get_json(self):
+    def get_json(self, filename):
         """
         Getting all the scraped newspaper articles from the database.
-
         """
+
+
+
         SQL = """SELECT row_to_json(row)
                     FROM
-                     (SELECT metadaten.*, text.article_text, raw_html.html, pos.pos_tags, ner.ner_tags
+                     (SELECT metadaten.*, text.article_text, raw_html.html, pos.pos_tags, method_pos.description as 
+                     tagging_method_pos, ner.ner_tags, method_ner.description as tagging_method_pos
                     FROM metadaten
-                    FULL JOIN text ON text.metadaten_id=metadaten.id
-                    FULL JOIN raw_html ON metadaten.id=raw_html.metadaten_id
-                    FULL JOIN pos ON metadaten.id=pos.metadaten_id
-                    FULL JOIN ner ON metadaten.id=ner.metadaten_id
+                    LEFT JOIN text ON text.metadaten_id=metadaten.id
+                    LEFT JOIN raw_html ON metadaten.id=raw_html.metadaten_id
+                    LEFT JOIN pos ON metadaten.id=pos.metadaten_id 
+                    LEFT JOIN ner ON metadaten.id=ner.metadaten_id
+                    LEFT JOIN method method_pos ON pos.method_id=method_pos.id
+                    LEFT JOIN method method_ner ON ner.method_id=method_ner.id
                     ) row;"""
+
+        known_spiders = ["sueddeutsche", "faz", "wiwo", "spiegel", "heise"]
+        allcategories = ["Sport", "Politik", "Wirtschaft", "Meinung", "Regional", "Kultur", "Gesellschaft",
+                         "Wissen", "Digital", "Karriere", "Reisen", "Technik"]
 
         self.cur.execute(SQL)
         result = self.cur.fetchall()
 
-        with open('export.json', 'w', encoding='utf8') as json_file:
+        with open(filename+".json", 'w', encoding='utf8') as json_file:
             json.dump(result, json_file, ensure_ascii=False)
 
-    def get_xml(self):
+    def get_xml(self, filename):
         """
         Getting all the scraped newspaper articles from the database.
         """
@@ -67,8 +74,18 @@ class Export:
 
         self.cur.execute(SQL)
         for c in self.cur:
-            with open('export.xml', 'w', encoding='utf8') as f:
+            with open(filename+".xml", 'w', encoding='utf8') as f:
                 f.write(c[0])
 
+    def get_sql_json(self, sql, filename):
+        sql_row_json = """SELECT row_to_json(row) FROM ("""+sql+""") row;"""
+        self.cur.execute(sql_row_json)
 
-Export()
+        result = self.cur.fetchall()
+
+        with open(filename+".json", 'w', encoding='utf8') as json_file:
+            json.dump(result, json_file, ensure_ascii=False)
+
+
+export = Export()
+export.get_sql_json(sql="SELECT * FROM metadaten", filename="export")
