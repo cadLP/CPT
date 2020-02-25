@@ -85,7 +85,8 @@ class HeiseSpider(scrapy.Spider):
         for url in response.xpath(article_xpath).getall():
             if re.match(article_url_regex, url):
                 article_url = response.urljoin(url)
-                yield scrapy.Request(article_url, callback=self.parse_article, meta={})
+                if article_url not in self.known_urls:
+                    yield scrapy.Request(article_url, callback=self.parse_article, meta={})
 
         next_page = response.xpath('//li[has-class("a-pagination__item--next")]/a/@href').get()
         next_page = response.urljoin(next_page)

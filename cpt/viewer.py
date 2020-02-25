@@ -33,6 +33,7 @@ class Viewer:
         try:
             self.cur.execute(self.sql)
             result = self.cur.fetchall()
+            print("Query erzielte " + str(len(result)) + "Ergebnisse:")
             for r in result:
                 print(r)
         except:

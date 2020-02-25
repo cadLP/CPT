@@ -243,6 +243,6 @@ def getTask():
             export()
         if eingabe == "exit":
             break
-
+print("Welcome to the CPT Crawler!")
 getTask()
 

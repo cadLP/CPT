@@ -69,7 +69,7 @@ class Export:
 
         self.cur.execute(SQL)
         result = self.cur.fetchall()
-        print("got result")
+
         with open(filename+".json", 'w', encoding='utf8') as json_file:
             json.dump(result, json_file, ensure_ascii=False)
 
